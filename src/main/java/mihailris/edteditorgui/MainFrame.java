@@ -1,10 +1,16 @@
 package mihailris.edteditorgui;
 
+import mihailris.edteditorgui.actions.ActionOpenEDT;
+import mihailris.edteditorgui.actions.ActionRenameGroupSubItem;
+import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellEditor;
@@ -12,22 +18,28 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class MainFrame extends JFrame {
-    private EDTItem root;
-    private JTree tree;
+    @Autowired
+    AppContext context;
+
+    final JTree tree;
     private EDTItem selectionParent;
     private Object selection;
+    TreeCellEditor treeCellEditor;
     public MainFrame(){
         configTheme();
 
         setTitle("EDT3 Editor GUI");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(900, 600);
 
-        //Creating the MenuBar and adding components
         JMenuBar mb = new JMenuBar();
         JMenu m1 = new JMenu("File");
         JMenu m2 = new JMenu("Edit");
@@ -36,7 +48,15 @@ public class MainFrame extends JFrame {
         JMenuItem m11 = new JMenuItem("Open");
         m11.addActionListener(actionEvent -> {
             FileDialog fileChooser = new FileDialog(this);
-            fileChooser.show();
+            fileChooser.setVisible(true);
+            File file = new File(fileChooser.getDirectory(), fileChooser.getFile());
+            System.out.println(file);
+            try {
+                byte[] bytes = Files.readAllBytes(file.toPath());
+                Actions.act(new ActionOpenEDT(context.root, EDT.read(bytes)), context);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
         JMenuItem m22 = new JMenuItem("Save");
         JMenuItem m23 = new JMenuItem("Save as");
@@ -44,23 +64,29 @@ public class MainFrame extends JFrame {
         m1.add(m22);
         m1.add(m23);
 
-        //Creating the panel at bottom and adding components
-        JPanel panel = new JPanel(); // the panel is not visible in output
+        JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter Text");
-        JTextField tf = new JTextField(10); // accepts up to 10 characters
+        JTextField tf = new JTextField(10);
         JButton send = new JButton("Send");
-        JButton reset = new JButton("Reset");
-        panel.add(label); // Components Added using Flow Layout
+        JButton reset = new JButton("Refresh");
+        reset.addMouseListener(new MouseInputAdapter(){
+            @Override
+            public void mousePressed(MouseEvent mouseEvent) {
+                super.mousePressed(mouseEvent);
+                buildTree();
+            }
+        });
+        panel.add(label);
         panel.add(tf);
         panel.add(send);
         panel.add(reset);
 
-        // Text Area at the Center
         DefaultMutableTreeNode node = new DefaultMutableTreeNode("root");
         tree = new JTree(node);
-        TreeCellEditor editor = new DefaultCellEditor(new JTextField());
+
+        treeCellEditor = new DefaultCellEditor(new JTextField());
         tree.setEditable(true);
-        tree.setCellEditor(editor);
+        tree.setCellEditor(treeCellEditor);
         tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -69,17 +95,16 @@ public class MainFrame extends JFrame {
                 TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
                 if(selRow != -1) {
                     if(e.getClickCount() == 1) {
+                        assert selPath != null;
+                        selectByPath(selPath);
                         int button = e.getButton();
                         switch (button) {
                             case MouseEvent.BUTTON1:
-                                assert selPath != null;
-                                selectByPath(selPath);
                                 break;
-                            case MouseEvent.BUTTON2:
-                                openNodeContextMenu(selPath);
+                            case MouseEvent.BUTTON3:
+                                openNodeContextMenu(e, selPath);
                                 break;
                         }
-                        System.out.println(e.getButton()+" "+selPath);
                     }
                 }
             }
@@ -95,16 +120,11 @@ public class MainFrame extends JFrame {
         contentPane.add(BorderLayout.SOUTH, panel);
         contentPane.add(BorderLayout.NORTH, mb);
         contentPane.add(BorderLayout.CENTER, splitPane);
-        setVisible(true);
     }
 
-    public void load(EDTItem root){
-        this.root = root;
-        buildTree();
-    }
-
-    private void buildTree() {
-        tree.setModel(new DefaultTreeModel(buildNode(root, root.getTag())));
+    public void buildTree() {
+        tree.setModel(new DefaultTreeModel(buildNode(context.root, context.root.getTag())));
+        tree.setCellRenderer(new EDTTreeCellRenderer(context));
     }
 
     public Object getSelectedNode(Object root, Object[] path, int index){
@@ -122,13 +142,23 @@ public class MainFrame extends JFrame {
     }
 
     private DefaultMutableTreeNode buildNode(Object root, String key) {
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(key);
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(key) {
+            @Override
+            public void setUserObject(Object userObject) {
+                if (selectionParent instanceof EDTGroup) {
+                    Actions.act(new ActionRenameGroupSubItem(
+                            (EDTGroup) selectionParent,
+                            selection,
+                            (String) getUserObject(),
+                            (String) userObject), context);
+                    super.setUserObject(userObject);
+                }
+            }
+        };
         if (root instanceof EDTGroup){
             EDTGroup group = (EDTGroup) root;
             Map<String, Object> objects = group.getObjects();
-            objects.keySet().stream().sorted().forEach(k -> {
-                node.add(buildNode(objects.get(k), k));
-            });
+            objects.keySet().stream().sorted().forEach(k -> node.add(buildNode(objects.get(k), k)));
         }
         if (root instanceof EDTList){
             EDTList list = (EDTList) root;
@@ -140,12 +170,15 @@ public class MainFrame extends JFrame {
         return node;
     }
 
-    private void openNodeContextMenu(TreePath path) {
+    private void openNodeContextMenu(MouseEvent e, TreePath path) {
+        int row = tree.getClosestRowForLocation(e.getX(), e.getY());
+        tree.setSelectionRow(row);
+        new TreePopUpMenu(this, path).show(e.getComponent(), e.getX(), e.getY());
     }
 
     private void selectByPath(TreePath path) {
         selectionParent = null;
-        selection = getSelectedNode(root, path.getPath(), 1);
+        selection = getSelectedNode(context.root, path.getPath(), 1);
     }
 
     private static void configTheme(){
