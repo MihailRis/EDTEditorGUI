@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -21,6 +23,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +36,7 @@ public class MainFrame extends JFrame {
     private EDTItem selectionParent;
     private Object selection;
     TreeCellEditor treeCellEditor;
+    private boolean renaming = false;
     public MainFrame(){
         configTheme();
 
@@ -83,8 +87,40 @@ public class MainFrame extends JFrame {
 
         DefaultMutableTreeNode node = new DefaultMutableTreeNode("root");
         tree = new JTree(node);
+        tree.setFocusCycleRoot(true);
 
-        treeCellEditor = new DefaultCellEditor(new JTextField());
+        treeCellEditor = new DefaultCellEditor(new JTextField()) {
+            @Override
+            public boolean isCellEditable(EventObject event) {
+                MouseEvent e = (MouseEvent) event;
+                if (e != null) {
+                    int selRow = tree.getRowForLocation(e.getX(), e.getY());
+                    TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+                    if (selRow != -1) {
+                        System.out.println("MainFrame.isCellEditable " + selPath);
+                        assert selPath != null;
+                        Object object = context.getEdtNode(context.root, selPath.getPath(), 1);
+                        if (object instanceof EDTItem)
+                            return false;
+                    }
+                }
+                return super.isCellEditable(e);
+            }
+        };
+
+        treeCellEditor.addCellEditorListener(new CellEditorListener() {
+            @Override
+            public void editingStopped(ChangeEvent changeEvent) {
+                renaming = false;
+                System.out.println("MainFrame.editingStopped unrenaming");
+            }
+
+            @Override
+            public void editingCanceled(ChangeEvent changeEvent) {
+                renaming = false;
+                System.out.println("MainFrame.editingCanceled unrenaming");
+            }
+        });
         tree.setEditable(true);
         tree.setCellEditor(treeCellEditor);
         tree.addMouseListener(new MouseAdapter() {
@@ -142,17 +178,25 @@ public class MainFrame extends JFrame {
     }
 
     private DefaultMutableTreeNode buildNode(Object root, String key) {
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(key) {
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode(new EDTNodeUserData(key, root)) {
             @Override
             public void setUserObject(Object userObject) {
                 if (selectionParent instanceof EDTGroup) {
-                    Actions.act(new ActionRenameGroupSubItem(
-                            (EDTGroup) selectionParent,
-                            selection,
-                            (String) getUserObject(),
-                            (String) userObject), context);
-                    super.setUserObject(userObject);
+                    EDTNodeUserData userData = (EDTNodeUserData) this.userObject;
+                    if (renaming) {
+                        Actions.act(new ActionRenameGroupSubItem(
+                                (EDTGroup) selectionParent,
+                                selection,
+                                userData.getTag(),
+                                (String) userObject), context);
+                        userData.setTag((String) userObject);
+                    }
+                    else {
+                        super.setUserObject(userObject);
+                    }
                 }
+                System.out.println("MainFrame.setUserObject unrenaming");
+                renaming = false;
             }
         };
         if (root instanceof EDTGroup){
@@ -192,5 +236,10 @@ public class MainFrame extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void startRenaming(TreePath path) {
+        renaming = true;
+        tree.startEditingAtPath(path);
     }
 }

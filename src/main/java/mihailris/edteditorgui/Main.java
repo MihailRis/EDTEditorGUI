@@ -18,7 +18,7 @@ public class Main {
 
         AppContext appContext = (AppContext) context.getBean("appContext");
         MainFrame mainFrame = (MainFrame) context.getBean("mainFrame");
-        //appContext.setRoot(root);
+        appContext.setRoot(root);
         mainFrame.setVisible(true);
     }
 }

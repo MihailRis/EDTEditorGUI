@@ -18,7 +18,7 @@ public class TreePopUpMenu extends JPopupMenu {
             @Override
             public void mousePressed(MouseEvent mouseEvent) {
                 super.mousePressed(mouseEvent);
-                frame.tree.startEditingAtPath(path);
+                frame.startRenaming(path);
             }
         });
         add(renameItem);

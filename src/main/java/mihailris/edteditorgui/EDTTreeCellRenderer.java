@@ -16,6 +16,7 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
 
     public EDTTreeCellRenderer(AppContext context){
         this.context = context;
+        setBorderSelectionColor(new Color(0, 0, 0, 0));
     }
 
     @Override
@@ -40,9 +41,12 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
             }
             String text;
             if (!(edtValue instanceof EDTItem)) {
-                if (edtValue instanceof String)
-                    edtValue = "\""+edtValue+"\"";
-                //text = userObject+": <b>"+String.format(SPAN_FORMAT, "#50A040", edtValue)+"</b>";
+                if (edtValue instanceof String) {
+                    edtValue = "\"" + edtValue + "\"";
+                }
+                if (edtValue instanceof byte[]) {
+                    edtValue = "byte["+((byte[]) edtValue).length+"]";
+                }
                 text = ""+String.format(SPAN_FORMAT, "white", userObject)+" <b>"+String.format(SPAN_FORMAT, "#50A040", edtValue)+"</b>";
             } else {
                 text = ""+String.valueOf(userObject)+"";
