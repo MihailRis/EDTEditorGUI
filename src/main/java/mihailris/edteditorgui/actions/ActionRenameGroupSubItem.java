@@ -2,7 +2,6 @@ package mihailris.edteditorgui.actions;
 
 import mihailris.edteditorgui.Action;
 import mihailris.edteditorgui.AppContext;
-import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 
@@ -12,16 +11,13 @@ public class ActionRenameGroupSubItem implements Action {
     private final String prevName;
     private final String nextName;
 
-    private final EDTNodeUserData userData;
-
     public ActionRenameGroupSubItem(
             EDTGroup selectionParent,
             String prevName,
-            String nextName, EDTNodeUserData userData) {
+            String nextName) {
         this.selectionParent = selectionParent;
         this.prevName = prevName;
         this.nextName = nextName;
-        this.userData = userData;
     }
 
     @Override
@@ -32,7 +28,6 @@ public class ActionRenameGroupSubItem implements Action {
         if (value instanceof EDTItem){
             ((EDTItem) value).setTag(nextName);
         }
-        //userData.setTag(nextName);
     }
 
     @Override
@@ -43,6 +38,5 @@ public class ActionRenameGroupSubItem implements Action {
         if (value instanceof EDTItem){
             ((EDTItem) value).setTag(prevName);
         }
-        //userData.setTag(prevName);
     }
 }

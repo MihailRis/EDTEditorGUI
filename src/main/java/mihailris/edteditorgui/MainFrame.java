@@ -14,10 +14,7 @@ import javax.swing.*;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.MouseInputAdapter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeCellEditor;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -37,7 +34,6 @@ public class MainFrame extends JFrame {
     DefaultTreeModel treeModel;
     final List<EDTNodeUserData> userDataList = new ArrayList<>();
     private EDTItem selectionParent;
-    private Object selection;
     TreeCellEditor treeCellEditor;
 
     private TreePath renaming;
@@ -75,6 +71,8 @@ public class MainFrame extends JFrame {
         contentPane.add(BorderLayout.CENTER, splitPane);
     }
 
+    public JTextField editorField;
+
     /**
      * @return empty configured JTree
      */
@@ -82,18 +80,26 @@ public class MainFrame extends JFrame {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode("root");
         JTree tree = new JTree(node);
         tree.setFocusCycleRoot(true);
-        treeCellEditor = new DefaultCellEditor(new JTextField());
+        editorField = new JTextField();
+        treeCellEditor = new DefaultCellEditor(editorField);
         treeCellEditor.addCellEditorListener(new CellEditorListener() {
             @Override
             public void editingStopped(ChangeEvent changeEvent) {
-                renaming = null;
-                System.out.println("MainFrame.editingStopped unrenaming");
+                cancelEdit();
             }
 
             @Override
             public void editingCanceled(ChangeEvent changeEvent) {
-                renaming = null;
-                System.out.println("MainFrame.editingCanceled unrenaming");
+                cancelEdit();
+            }
+
+            private void cancelEdit(){
+                if (renaming != null) {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) renaming.getLastPathComponent();
+                    EDTNodeUserData userData = (EDTNodeUserData) node.getUserObject();
+                    userData.setEditing(true);
+                    renaming = null;
+                }
             }
         });
         tree.setEditable(true);
@@ -192,8 +198,8 @@ public class MainFrame extends JFrame {
                         if (!into.equals(from))
                             Actions.act(new ActionRenameGroupSubItem(
                                     (EDTGroup) selectionParent,
-                                    from, into,
-                                    userData), context);
+                                    from, into
+                            ), context);
                     }
                     else {
                         Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
@@ -239,7 +245,7 @@ public class MainFrame extends JFrame {
 
     private void selectByPath(TreePath path) {
         selectionParent = null;
-        selection = getSelectedNode(context.root, path.getPath(), 1);
+        getSelectedNode(context.root, path.getPath(), 1);
     }
 
     public void startRenaming(TreePath path) {
@@ -247,32 +253,33 @@ public class MainFrame extends JFrame {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
         EDTNodeUserData userData = (EDTNodeUserData) node.getUserObject();
         userData.setEditing(false);
-        System.out.println("MainFrame.startRenaming "+path.getLastPathComponent().getClass().getSuperclass());
         tree.startEditingAtPath(path);
     }
 
-    private void refresh(DefaultMutableTreeNode rootNode, EDTItem root){
+    private void findNotPresentedTags(EDTGroup group, Queue<String> notPresented, DefaultMutableTreeNode rootNode) {
+        for (Map.Entry<String, Object> entry : group.getObjects().entrySet()){
+            String tag = entry.getKey();
+            boolean used = false;
+            for (int i = 0; i < rootNode.getChildCount(); i++) {
+                EDTNodeUserData subUserData = getUserData(rootNode.getChildAt(i));
+                if (tag.equals(subUserData.getTag())) {
+                    used = true;
+                    break;
+                }
+            }
+            if (!used)
+                notPresented.add(tag);
+        }
+    }
+
+    private void refresh(DefaultMutableTreeNode rootNode, EDTItem root) {
         EDTNodeUserData userData = (EDTNodeUserData) rootNode.getUserObject();
         userData.setTag(root.getTag());
         if (root instanceof EDTGroup) {
             EDTGroup group = (EDTGroup) root;
             Queue<String> notPresented = new ArrayDeque<>();
-            for (Map.Entry<String, Object> entry : group.getObjects().entrySet()){
-                String tag = entry.getKey();
-                boolean used = false;
-                for (int i = 0; i < rootNode.getChildCount(); i++) {
-                    DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-                    EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-                    if (tag.equals(subUserData.getTag())) {
-                        used = true;
-                        break;
-                    }
-                }
-                if (!used)
-                    notPresented.add(tag);
-            }
 
-            System.out.println("MainFrame.refresh "+notPresented);
+            findNotPresentedTags(group, notPresented, rootNode);
 
             for (int i = 0; i < rootNode.getChildCount(); i++) {
                 DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
@@ -297,6 +304,11 @@ public class MainFrame extends JFrame {
                 else {
                     subUserData.setValue(subEDT);
                 }
+            }
+            while (!notPresented.isEmpty()){
+                String tag = notPresented.remove();
+                DefaultMutableTreeNode node = buildNode(group, group.getObjects().get(tag), tag);
+                rootNode.add(node);
             }
         }
         else if (root instanceof EDTList) {
@@ -324,5 +336,10 @@ public class MainFrame extends JFrame {
 
         tree.updateUI();
         tree.repaint();
+    }
+
+    private static EDTNodeUserData getUserData(TreeNode node){
+        DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) node;
+        return (EDTNodeUserData) mutableTreeNode.getUserObject();
     }
 }
