@@ -6,7 +6,6 @@ import mihailris.edtfile.EDTList;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeNode;
 import java.awt.*;
 
 public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
@@ -22,34 +21,35 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
                                                   boolean leaf, int row, boolean hasFocus) {
-        /*return*/ super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+        super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-        Object userObject = node.getUserObject();
+        EDTNodeUserData userObject = (EDTNodeUserData) node.getUserObject();
+        String key = userObject.getTag();
         {
-            Object edtValue = context.getEdtNode(context.root, node.getPath(), 1);
-            TreeNode parent = node.getParent();
+            final Object edtValue = userObject.getValue();
+            String valueString = String.valueOf(edtValue);
+            EDTItem parentNode = userObject.getParent();
             boolean isListItem = false;
-            if (parent != null) {
-                Object parentValue = context.getEdtNode(context.root, ((DefaultMutableTreeNode) parent).getPath(), 1);
-                if (parentValue instanceof EDTList)
+            if (parentNode != null) {
+                if (parentNode instanceof EDTList)
                     isListItem = true;
             }
             if (isListItem){
-                userObject = String.format(SPAN_FORMAT, "gray", "["+userObject+"]");
+                key = String.format(SPAN_FORMAT, "gray", "["+key+"]");
             } else if (!(edtValue instanceof EDTItem)){
-                userObject += ":";
+                key += ":";
             }
             String text;
             if (!(edtValue instanceof EDTItem)) {
                 if (edtValue instanceof String) {
-                    edtValue = "\"" + edtValue + "\"";
+                    valueString = "\"" + valueString + "\"";
                 }
                 if (edtValue instanceof byte[]) {
-                    edtValue = "byte["+((byte[]) edtValue).length+"]";
+                    valueString = "byte["+((byte[]) edtValue).length+"]";
                 }
-                text = ""+String.format(SPAN_FORMAT, "white", userObject)+" <b>"+String.format(SPAN_FORMAT, "#50A040", edtValue)+"</b>";
+                text = key+" <b>"+String.format(SPAN_FORMAT, "#50A040", valueString)+"</b>";
             } else {
-                text = ""+String.valueOf(userObject)+"";
+                text = ""+key+"";
             }
             this.setText("<html>" + text + "</html>");
         }
