@@ -80,8 +80,22 @@ public class TreePopUpMenu extends JPopupMenu {
         });
         add(renameItem);
 
-        deleteItem = new JMenuItem("Delete");
-        add(deleteItem);
+        final EDTItem parent = userData.getParent();
+        if (parent != null) {
+            deleteItem = new JMenuItem("Delete");
+            deleteItem.addActionListener(actionEvent -> {
+                if (parent instanceof EDTGroup){
+                    EDTGroup group = (EDTGroup) parent;
+                    Actions.act(new ActionCreateRemoveGroup(group, userData.getTag(), value, false), frame.context);
+                }
+                else if (parent instanceof EDTList){
+                    EDTList list = (EDTList) parent;
+                    // fixme
+                    Actions.act(new ActionCreateRemoveList(list, Integer.parseInt(userData.getTag()), value, false), frame.context);
+                }
+            });
+            add(deleteItem);
+        }
     }
 
     public Object createDefaultObject(EDTType type, String tag){

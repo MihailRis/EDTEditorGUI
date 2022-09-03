@@ -1,11 +1,11 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.Action;
+import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 
-public class ActionRenameGroupSubItem implements Action {
+public class ActionRenameGroupSubItem implements EditorAction {
     private final EDTGroup selectionParent;
 
     private final String prevName;

@@ -1,10 +1,10 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.Action;
+import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edtfile.EDTList;
 
-public class ActionCreateRemoveList implements Action {
+public class ActionCreateRemoveList implements EditorAction {
     private final EDTList list;
     private final int index;
     private final Object value;

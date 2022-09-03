@@ -1,11 +1,11 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.Action;
+import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edtfile.EDTGroup;
 
-public class ActionSetValueGroup implements Action {
+public class ActionSetValueGroup implements EditorAction {
     private final EDTGroup group;
     private final String key;
     private final Object value;

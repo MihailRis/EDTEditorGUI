@@ -1,10 +1,10 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.Action;
+import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edtfile.EDTGroup;
 
-public class ActionCreateRemoveGroup implements Action {
+public class ActionCreateRemoveGroup implements EditorAction {
     private final EDTGroup group;
     private final String tag;
     private final Object value;

@@ -1,10 +1,10 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.Action;
+import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edtfile.EDTItem;
 
-public class ActionOpenEDT implements Action {
+public class ActionOpenEDT implements EditorAction {
     private final EDTItem prev;
     private final EDTItem next;
 

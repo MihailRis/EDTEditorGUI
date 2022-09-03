@@ -20,6 +20,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -54,15 +55,17 @@ public class MainFrame extends JFrame {
         tree = createTree();
 
         JPanel panel = new JPanel();
-        JButton reset = new JButton("Refresh");
-        reset.addMouseListener(new MouseInputAdapter(){
+
+        // Button for tree refreshing debug
+        JButton rebuildTreeButton = new JButton("Rebuild Tree");
+        rebuildTreeButton.addMouseListener(new MouseInputAdapter(){
             @Override
             public void mousePressed(MouseEvent mouseEvent) {
                 super.mousePressed(mouseEvent);
                 buildTree();
             }
         });
-        panel.add(reset);
+        panel.add(rebuildTreeButton);
 
         JScrollPane treeScrollPane = new JScrollPane(tree);
         JPanel editorPanel = new JPanel();
@@ -84,6 +87,10 @@ public class MainFrame extends JFrame {
         contentPane.add(BorderLayout.NORTH, mb);
         contentPane.add(BorderLayout.CENTER, splitPane);
 
+        configureDrop();
+    }
+
+    private void configureDrop(){
         setDropTarget(new DropTarget() {
             @SuppressWarnings("unchecked")
             @Override
@@ -148,12 +155,8 @@ public class MainFrame extends JFrame {
                         assert selPath != null;
                         selectByPath(selPath);
                         int button = e.getButton();
-                        switch (button) {
-                            case MouseEvent.BUTTON1:
-                                break;
-                            case MouseEvent.BUTTON3:
-                                openNodeContextMenu(e, selPath);
-                                break;
+                        if (button == MouseEvent.BUTTON3) {
+                            openNodeContextMenu(e, selPath);
                         }
                     }
                 }
@@ -163,17 +166,35 @@ public class MainFrame extends JFrame {
     }
 
     public void launch(){
-        AppShortcuts.createShortcuts(context);
         setVisible(true);
     }
 
+    /**
+     * Create menu items for the application
+     * @param mb target MenuBar
+     */
     private void constructMenu(JMenuBar mb){
         JMenu m1 = new JMenu("File");
         JMenu m2 = new JMenu("Edit");
         mb.add(m1);
         mb.add(m2);
-        JMenuItem m11 = new JMenuItem("Open");
+        JMenuItem m21 = new JMenuItem("Undo");
+        JMenuItem m22 = new JMenuItem("Redo");
+        m21.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK));
+        m22.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.ALT_DOWN_MASK));
+        m21.addActionListener(actionEvent -> Actions.undo(context));
+        m22.addActionListener(actionEvent -> Actions.redo(context));
+        m2.add(m21);
+        m2.add(m22);
+        JMenuItem m11 = new JMenuItem("New");
+        m11.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
         m11.addActionListener(actionEvent -> {
+            EDTItem newItem = EDTGroup.create("root");
+            Actions.act(new ActionOpenEDT(context.root, newItem), context);
+        });
+        JMenuItem m12 = new JMenuItem("Open");
+        m12.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
+        m12.addActionListener(actionEvent -> {
             FileDialog fileChooser = new FileDialog(this);
             fileChooser.setVisible(true);
             String directory = fileChooser.getDirectory();
@@ -189,11 +210,14 @@ public class MainFrame extends JFrame {
                 e.printStackTrace();
             }
         });
-        JMenuItem m22 = new JMenuItem("Save");
-        JMenuItem m23 = new JMenuItem("Save as");
+        JMenuItem m13 = new JMenuItem("Save");
+        m13.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+        JMenuItem m14 = new JMenuItem("Save as");
+        m14.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
         m1.add(m11);
-        m1.add(m22);
-        m1.add(m23);
+        m1.add(m12);
+        m1.add(m13);
+        m1.add(m14);
     }
 
     public void buildTree() {

@@ -1,6 +1,6 @@
 package mihailris.edteditorgui;
 
-public interface Action {
+public interface EditorAction {
     void action(AppContext context);
     void revert(AppContext context);
 }
