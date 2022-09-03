@@ -1,7 +1,11 @@
 package mihailris.edteditorgui;
 
+import mihailris.edteditorgui.actions.ActionCreateRemoveGroup;
+import mihailris.edteditorgui.actions.ActionCreateRemoveList;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
+import mihailris.edtfile.EDTList;
+import mihailris.edtfile.EDTType;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -25,10 +29,23 @@ public class TreePopUpMenu extends JPopupMenu {
                 @Override
                 public void mousePressed(MouseEvent mouseEvent) {
                     super.mousePressed(mouseEvent);
-                    SmallInputDialog dialog = new SmallInputDialog(frame);
+                    NameInputDialog dialog = new NameInputDialog(frame);
                     int x = subnodeItem.getLocationOnScreen().x;
-                    dialog.setLocation(x, mouseEvent.getYOnScreen());
-                    dialog.setVisible(true);
+                    dialog.setLocation(x, mouseEvent.getYOnScreen()-50);
+                    dialog.show(text -> {
+                        text = text.trim();
+                        if (text.isEmpty())
+                            return;
+                        Object object = createDefaultObject(EDTType.GROUP, text);
+                        if (value instanceof EDTGroup){
+                            EDTGroup group = (EDTGroup) value;
+                            Actions.act(new ActionCreateRemoveGroup(group, text, object, true), frame.context);
+                        }
+                        else if (value instanceof EDTList){
+                            EDTList list = (EDTList) value;
+                            Actions.act(new ActionCreateRemoveList(list, list.size(), object, true), frame.context);
+                        }
+                    });
                 }
             });
             subnodeItem.add(subgroupItem);
@@ -54,5 +71,23 @@ public class TreePopUpMenu extends JPopupMenu {
 
         deleteItem = new JMenuItem("Delete");
         add(deleteItem);
+    }
+
+    public Object createDefaultObject(EDTType type, String tag){
+        switch (type){
+            case GROUP:
+                return EDTGroup.create(tag);
+            case LIST:
+                return EDTList.create(tag);
+            case INT64:
+                return 0;
+            case FLOAT32:
+                return 0.0f;
+            case FLOAT64:
+                return 0.0;
+            case STRING:
+                return "";
+        }
+        throw new IllegalArgumentException(String.valueOf(type));
     }
 }

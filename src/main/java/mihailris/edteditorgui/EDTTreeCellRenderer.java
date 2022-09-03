@@ -1,5 +1,6 @@
 package mihailris.edteditorgui;
 
+import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
 
@@ -49,7 +50,12 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
                 }
                 text = key+" <b>"+String.format(SPAN_FORMAT, "#50A040", valueString)+"</b>";
             } else {
-                text = ""+key+"";
+                if (edtValue instanceof EDTGroup && ((EDTGroup) edtValue).size() == 0){
+                    text = key + ": " + String.format(SPAN_FORMAT, "gray", "empty");
+                }
+                else {
+                    text = "" + key + "";
+                }
             }
             this.setText("<html>" + text + "</html>");
         }

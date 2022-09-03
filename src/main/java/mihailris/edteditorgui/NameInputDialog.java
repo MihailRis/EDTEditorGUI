@@ -3,10 +3,12 @@ package mihailris.edteditorgui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.function.Consumer;
 
-public class SmallInputDialog extends JDialog {
+public class NameInputDialog extends JDialog {
     JTextField field;
-    public SmallInputDialog(JFrame frame){
+    Consumer<String> consumer;
+    public NameInputDialog(JFrame frame){
         super(frame);
         setUndecorated(true);
         JPanel panel = new JPanel();
@@ -16,8 +18,10 @@ public class SmallInputDialog extends JDialog {
             @Override
             public void keyPressed(KeyEvent keyEvent) {
                 super.keyPressed(keyEvent);
-                if (keyEvent.getKeyCode() == KeyEvent.VK_ENTER)
+                if (keyEvent.getKeyCode() == KeyEvent.VK_ENTER) {
+                    consumer.accept(field.getText());
                     setVisible(false);
+                }
             }
         });
         panel.add(field);
@@ -35,12 +39,17 @@ public class SmallInputDialog extends JDialog {
             public void windowLostFocus(WindowEvent e) {
                 if (e.getOppositeWindow() == null)
                     return;
-                if (SwingUtilities.isDescendingFrom(e.getOppositeWindow(), SmallInputDialog.this)) {
+                if (SwingUtilities.isDescendingFrom(e.getOppositeWindow(), NameInputDialog.this)) {
                     return;
                 }
-                SmallInputDialog.this.setVisible(false);
+                NameInputDialog.this.setVisible(false);
             }
         });
+    }
+
+    public void show(Consumer<String> consumer){
+        this.consumer = consumer;
+        setVisible(true);
     }
 
     @Override
