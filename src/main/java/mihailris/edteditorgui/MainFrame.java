@@ -16,6 +16,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.tree.*;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -42,7 +46,7 @@ public class MainFrame extends JFrame {
 
         setTitle("EDT3 Editor GUI");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 600);
+        setSize(500, 600);
 
         JMenuBar mb = new JMenuBar();
         constructMenu(mb);
@@ -61,14 +65,43 @@ public class MainFrame extends JFrame {
         panel.add(reset);
 
         JScrollPane treeScrollPane = new JScrollPane(tree);
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, new JPanel());
-        splitPane.setDividerLocation(200);
+        JPanel editorPanel = new JPanel();
+        Color color = editorPanel.getBackground();
+        editorPanel.setBackground(new Color(
+                (int) (color.getRed()*0.8f),
+                (int) (color.getGreen()*0.8f),
+                (int) (color.getBlue()*0.8f)
+        ));
+        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JPanel(), editorPanel);
+        infoSplitPane.setContinuousLayout(true);
+        infoSplitPane.setDividerLocation(250);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, infoSplitPane);
+        splitPane.setDividerLocation(250);
         splitPane.setContinuousLayout(true);
 
         Container contentPane = getContentPane();
         contentPane.add(BorderLayout.SOUTH, panel);
         contentPane.add(BorderLayout.NORTH, mb);
         contentPane.add(BorderLayout.CENTER, splitPane);
+
+        setDropTarget(new DropTarget() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public synchronized void drop(DropTargetDropEvent event) {
+                try {
+                    event.acceptDrop(DnDConstants.ACTION_COPY);
+                    List<File> droppedFiles = (List<File>)
+                            event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    if (droppedFiles.size() != 1)
+                        return;
+                    File file = droppedFiles.get(0);
+                    EDTItem edtItem = EDT.read(Files.readAllBytes(file.toPath()));
+                    Actions.act(new ActionOpenEDT(context.root, edtItem), context);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public JTextField editorField;
@@ -80,7 +113,7 @@ public class MainFrame extends JFrame {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode("root");
         JTree tree = new JTree(node);
         tree.setFocusCycleRoot(true);
-        editorField = new JTextField();
+        editorField = new JTextField(10);
         treeCellEditor = new DefaultCellEditor(editorField);
         treeCellEditor.addCellEditorListener(new CellEditorListener() {
             @Override
@@ -184,33 +217,29 @@ public class MainFrame extends JFrame {
         return root;
     }
 
-    private DefaultMutableTreeNode buildNode(EDTItem parent, Object root, String key) {
-        EDTNodeUserData edtNodeUserData = new EDTNodeUserData(parent, key, root);
+    private DefaultMutableTreeNode buildNode(EDTItem parentEDT, Object root, String key) {
+        EDTNodeUserData edtNodeUserData = new EDTNodeUserData(parentEDT, key, root);
         userDataList.add(edtNodeUserData);
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(edtNodeUserData) {
             @Override
             public void setUserObject(Object userObject) {
                 EDTNodeUserData userData = (EDTNodeUserData) this.userObject;
-                if (selectionParent instanceof EDTGroup) {
+                if (parentEDT instanceof EDTGroup) {
                     if (renaming != null) {
                         String from = userData.getTag();
                         String into = String.valueOf(userObject);
                         if (!into.equals(from))
                             Actions.act(new ActionRenameGroupSubItem(
-                                    (EDTGroup) selectionParent,
+                                    (EDTGroup) parentEDT,
                                     from, into
                             ), context);
                     }
                     else {
                         Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
                         if (performed != null){
-                            if (selectionParent instanceof EDTGroup) {
-                                EDTGroup group = (EDTGroup) selectionParent;
-                                Actions.act(new ActionSetValueGroup(group, userData.getTag(), userData.getValue(), performed, userData), context);
-                            }
-                            else {
-                                throw new IllegalStateException();
-                            }
+                            EDTGroup group = (EDTGroup) parentEDT;
+                            System.out.println("MainFrame.setUserObject "+group.getTag()+" "+userData.getValue()+" "+performed);
+                            Actions.act(new ActionSetValueGroup(group, userData.getTag(), userData.getValue(), performed, userData), context);
                         }
                         else {
                             System.err.println("invalid input");
