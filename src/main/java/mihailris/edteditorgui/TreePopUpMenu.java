@@ -20,36 +20,6 @@ public class TreePopUpMenu extends JPopupMenu {
     JMenuItem renameItem;
     JMenuItem deleteItem;
 
-    public ActionListener createAddNodeActionListener(MainFrame frame, EDTType edtType, EDTItem value){
-        return mouseEvent -> {
-            NameInputDialog dialog = new NameInputDialog(frame);
-            Point point = MouseInfo.getPointerInfo().getLocation();
-            int x = point.x;
-            int y = point.y;
-            dialog.setLocation(x-160, y-50);
-            dialog.show(text -> {
-                text = text.trim();
-                if (text.isEmpty())
-                    return;
-                Object object = createDefaultObject(edtType, text);
-                if (value instanceof EDTGroup){
-                    EDTGroup group = (EDTGroup) value;
-                    Actions.act(new ActionCreateRemoveGroup(group, text, object, true), frame.context);
-                }
-                else if (value instanceof EDTList){
-                    EDTList list = (EDTList) value;
-                    Actions.act(new ActionCreateRemoveList(list, list.size(), object, true), frame.context);
-                }
-            });
-        };
-    }
-
-    private JMenuItem createSubnodeMenuItem(MainFrame frame, EDTType type, EDTItem value, String text){
-        JMenuItem subgroupItem = new JMenuItem(text);
-        subgroupItem.addActionListener(createAddNodeActionListener(frame, type, value));
-        return subgroupItem;
-    }
-
     public TreePopUpMenu(MainFrame frame, TreePath path){
         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
         EDTNodeUserData userData = (EDTNodeUserData) treeNode.getUserObject();
@@ -91,13 +61,48 @@ public class TreePopUpMenu extends JPopupMenu {
                 else if (parent instanceof EDTList){
                     EDTList list = (EDTList) parent;
                     // fixme
-                    Actions.act(new ActionCreateRemoveList(list, Integer.parseInt(userData.getTag()), value, false), frame.context);
+                    Actions.act(new ActionCreateRemoveList(list, userData.getIndex(), value, false), frame.context);
                 }
             });
             add(deleteItem);
         }
     }
 
+    private ActionListener createAddNodeActionListener(MainFrame frame, EDTType edtType, EDTItem value){
+        return mouseEvent -> {
+            NameInputDialog dialog = new NameInputDialog(frame);
+            Point point = MouseInfo.getPointerInfo().getLocation();
+            int x = point.x;
+            int y = point.y;
+            dialog.setLocation(x-160, y-50);
+            dialog.show(text -> {
+                text = text.trim();
+                if (text.isEmpty())
+                    return;
+                Object object = createDefaultObject(edtType, text);
+                if (value instanceof EDTGroup){
+                    EDTGroup group = (EDTGroup) value;
+                    Actions.act(new ActionCreateRemoveGroup(group, text, object, true), frame.context);
+                }
+                else if (value instanceof EDTList){
+                    EDTList list = (EDTList) value;
+                    Actions.act(new ActionCreateRemoveList(list, list.size(), object, true), frame.context);
+                }
+            });
+        };
+    }
+
+    private JMenuItem createSubnodeMenuItem(MainFrame frame, EDTType type, EDTItem value, String text){
+        JMenuItem subgroupItem = new JMenuItem(text);
+        subgroupItem.addActionListener(createAddNodeActionListener(frame, type, value));
+        return subgroupItem;
+    }
+
+    /**
+     * @param type type of value to create
+     * @param tag tag for EDTItem if it is EDTItem
+     * @return default value for required type
+     */
     public Object createDefaultObject(EDTType type, String tag){
         switch (type){
             case GROUP:

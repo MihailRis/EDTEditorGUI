@@ -52,4 +52,8 @@ public class EDTNodeUserData {
     public void setValue(Object value) {
         this.value = value;
     }
+
+    public int getIndex() {
+        return Integer.parseInt(tag);
+    }
 }

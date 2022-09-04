@@ -366,11 +366,16 @@ public class MainFrame extends JFrame {
         }
         else if (root instanceof EDTList) {
             EDTList list = (EDTList) root;
-            int childCount = rootNode.getChildCount();
-            for (int i = 0; i < childCount; i++) {
+            for (int i = 0; i < rootNode.getChildCount(); i++) {
                 DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
                 EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-                Object subEDT = list.getObjects().get(Integer.parseInt(subUserData.getTag()));
+                int index = subUserData.getIndex();
+                if (index == -1){
+                    subnode.removeFromParent();
+                    i--;
+                    continue;
+                }
+                Object subEDT = list.getObjects().get(index);
                 if (subEDT instanceof EDTItem) {
                     refresh(subnode, (EDTItem) subEDT);
                 }

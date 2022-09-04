@@ -36,7 +36,7 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
                     isListItem = true;
             }
             if (isListItem){
-                key = String.format(SPAN_FORMAT, "gray", "["+key+"]");
+                key = String.format(SPAN_FORMAT, "gray", "["+userObject.getIndex()+"]");
             } else if (!(edtValue instanceof EDTItem)){
                 key += ":";
             }
