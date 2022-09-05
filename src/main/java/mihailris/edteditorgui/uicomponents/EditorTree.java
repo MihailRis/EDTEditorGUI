@@ -26,7 +26,7 @@ public class EditorTree extends JTree {
     public final Map<EDTItem, Boolean> expansions = new HashMap<>();
 
     public EditorTree(MainFrame mainFrame){
-        super(new DefaultMutableTreeNode("root"));
+        super();
         this.mainFrame = mainFrame;
         setFocusCycleRoot(true);
         editorField = new JTextField(10);

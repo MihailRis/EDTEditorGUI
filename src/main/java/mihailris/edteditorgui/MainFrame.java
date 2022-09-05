@@ -126,7 +126,9 @@ public class MainFrame extends JFrame {
      */
     private void constructMenu(JMenuBar mb){
         JMenu m1 = new JMenu("File");
+        m1.setMnemonic('f');
         JMenu m2 = new JMenu("Edit");
+        m2.setMnemonic('e');
         mb.add(m1);
         mb.add(m2);
         JMenuItem m21 = new JMenuItem("Undo");
