@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -36,7 +35,6 @@ public class MainFrame extends JFrame {
     public AppContext context;
 
     final EditorTree tree;
-    private EDTItem selectionParent;
 
     public TreePath renaming;
     public MainFrame(){
@@ -207,17 +205,13 @@ public class MainFrame extends JFrame {
         if (index == path.length)
             return root;
         if (root instanceof EDTGroup) {
-            selectionParent = (EDTItem) root;
             return getSelectedNode(((EDTGroup) root).getObjects().get(path[index].toString()), path, index+1);
         }
         if (root instanceof EDTList) {
-            selectionParent = (EDTItem) root;
             return getSelectedNode(((EDTList) root).getObjects().get(Integer.parseInt(path[index].toString())), path, index+1);
         }
         return root;
     }
-
-
 
     public void openNodeContextMenu(MouseEvent e, TreePath path) {
         int row = tree.getClosestRowForLocation(e.getX(), e.getY());
@@ -226,7 +220,6 @@ public class MainFrame extends JFrame {
     }
 
     public void selectByPath(TreePath path) {
-        selectionParent = null;
         getSelectedNode(context.root, path.getPath(), 1);
     }
 
@@ -273,6 +266,9 @@ public class MainFrame extends JFrame {
         setTitle(title);
     }
 
+    /**
+     * Refresh application content after action perfomed
+     */
     public void onSomethingChanged() {
         tree.refreshTree();
         updateTitle();
