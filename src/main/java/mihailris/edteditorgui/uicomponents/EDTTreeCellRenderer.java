@@ -54,11 +54,11 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
                 }
                 text = key+" <b>"+String.format(SPAN_FORMAT, "#50A040", valueString)+"</b>";
             } else {
-                if (edtValue instanceof EDTGroup && ((EDTGroup) edtValue).size() == 0){
-                    text = key + ": " + String.format(SPAN_FORMAT, "gray", "empty");
+                if (((EDTItem) edtValue).size() == 0){
+                    text = key + ": " + String.format(SPAN_FORMAT, "gray", "empty "+(edtValue instanceof EDTGroup ? "group" : "list"));
                 }
                 else {
-                    text = "" + key + "";
+                    text = key;
                 }
             }
             this.setText("<html>" + text + "</html>");

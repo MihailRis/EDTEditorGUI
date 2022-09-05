@@ -33,10 +33,8 @@ import java.util.*;
 
 @Component
 public class MainFrame extends JFrame {
-    private final String appTitle;
     @Autowired
-    public
-    AppContext context;
+    public AppContext context;
 
     final JTree tree;
     DefaultTreeModel treeModel;
@@ -49,8 +47,7 @@ public class MainFrame extends JFrame {
     public MainFrame(){
         EditorSwingUtils.configTheme();
 
-        appTitle = "EDT3 Editor GUI";
-        setTitle(appTitle);
+        setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 600);
 
@@ -95,6 +92,9 @@ public class MainFrame extends JFrame {
         configureDrop();
     }
 
+    /**
+     * EDT files drop feature configuration
+     */
     private void configureDrop(){
         setDropTarget(new DropTarget() {
             @SuppressWarnings("unchecked")
@@ -572,7 +572,7 @@ public class MainFrame extends JFrame {
             title += "*";
         }
 
-        title += " - " + appTitle;
+        title += " - " + EDTEditorGUIApp.title + " " + EDTEditorGUIApp.versionString;
         setTitle(title);
     }
 }
