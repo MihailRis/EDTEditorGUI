@@ -37,6 +37,8 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
             }
             if (isListItem){
                 key = String.format(SPAN_FORMAT, "gray", "["+userObject.getIndex()+"]");
+                if (userObject.getTag() != null)
+                    key += " "+userObject.getTag();
             } else if (!(edtValue instanceof EDTItem)){
                 key += ":";
             }

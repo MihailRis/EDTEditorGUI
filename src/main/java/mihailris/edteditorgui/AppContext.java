@@ -6,6 +6,8 @@ import mihailris.edtfile.EDTList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+
 @Component
 public class AppContext {
     EDTItem root;
@@ -13,13 +15,23 @@ public class AppContext {
     @Autowired
     MainFrame mainFrame;
 
+    File lastFile;
+
     AppContext(){
         root = EDTGroup.create("root");
     }
 
     public void setRoot(EDTItem root){
         this.root = root;
-        mainFrame.buildTree();
+        mainFrame.onRootChanged();
+    }
+
+    public File getLastFile() {
+        return lastFile;
+    }
+
+    public void setLastFile(File lastFile) {
+        this.lastFile = lastFile;
     }
 
     public Object getEdtNode(Object root, Object[] path, int index){

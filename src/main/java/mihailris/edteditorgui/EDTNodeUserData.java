@@ -7,11 +7,13 @@ public class EDTNodeUserData {
     private String tag;
     private Object value;
     private boolean editing = true;
+    private int index;
 
-    public EDTNodeUserData(EDTItem parent, String tag, Object value) {
+    public EDTNodeUserData(EDTItem parent, String tag, Object value, int index) {
         this.parent = parent;
         this.tag = tag;
         this.value = value;
+        this.index = index;
     }
 
     public EDTItem getParent() {
@@ -54,6 +56,6 @@ public class EDTNodeUserData {
     }
 
     public int getIndex() {
-        return Integer.parseInt(tag);
+        return index;
     }
 }
