@@ -1,6 +1,5 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edtfile.EDTItem;
 
@@ -16,6 +15,7 @@ public class ActionOpenEDT implements EditorAction {
     @Override
     public void action(AppContext context) {
         context.setRoot(next);
+        Actions.save();
     }
 
     @Override

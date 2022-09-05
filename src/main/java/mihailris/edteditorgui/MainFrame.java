@@ -1,6 +1,9 @@
 package mihailris.edteditorgui;
 
 import mihailris.edteditorgui.actions.*;
+import mihailris.edteditorgui.uicomponents.EDTTreeCellRenderer;
+import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
+import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edteditorgui.utils.InputChecker;
 import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTGroup;
@@ -30,7 +33,9 @@ import java.util.*;
 
 @Component
 public class MainFrame extends JFrame {
+    private final String appTitle;
     @Autowired
+    public
     AppContext context;
 
     final JTree tree;
@@ -44,7 +49,8 @@ public class MainFrame extends JFrame {
     public MainFrame(){
         EditorSwingUtils.configTheme();
 
-        setTitle("EDT3 Editor GUI");
+        appTitle = "EDT3 Editor GUI";
+        setTitle(appTitle);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 600);
 
@@ -102,6 +108,7 @@ public class MainFrame extends JFrame {
                         return;
                     File file = droppedFiles.get(0);
                     EDTItem edtItem = EDT.read(Files.readAllBytes(file.toPath()));
+                    context.setLastFile(file);
                     Actions.act(new ActionOpenEDT(context.root, edtItem), context);
                 } catch (Exception e){
                     e.printStackTrace();
@@ -211,7 +218,11 @@ public class MainFrame extends JFrame {
         return tree;
     }
 
+    /**
+     * The main start up method that launches the application
+     */
     public void launch(){
+        updateTitle();
         setVisible(true);
     }
 
@@ -251,8 +262,9 @@ public class MainFrame extends JFrame {
             File file = new File(directory, filename);
             try {
                 byte[] bytes = Files.readAllBytes(file.toPath());
-                Actions.act(new ActionOpenEDT(context.root, EDT.read(bytes)), context);
+                EDTItem edtItem = EDT.read(bytes);
                 context.setLastFile(file);
+                Actions.act(new ActionOpenEDT(context.root, edtItem), context);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -270,6 +282,10 @@ public class MainFrame extends JFrame {
         m1.add(m14);
     }
 
+    /**
+     * Save current root to the file and remember the file
+     * @param file file where to write
+     */
     private void saveEDTToFile(File file) {
         if (file == null){
             FileDialog fileChooser = new FileDialog(this);
@@ -284,11 +300,16 @@ public class MainFrame extends JFrame {
         try {
             Files.write(file.toPath(), EDT.write(context.root));
             context.setLastFile(file);
+            Actions.save();
+            updateTitle();
         } catch (IOException e){
             JOptionPane.showMessageDialog(this, e);
         }
     }
 
+    /**
+     * Build whole JTree content from scratch
+     */
     public void buildTree() {
         userDataList.clear();
         DefaultMutableTreeNode rootNode = buildNode(null, context.root, context.root.getTag(), -1);
@@ -400,6 +421,96 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void refresh(DefaultMutableTreeNode rootNode, EDTGroup group){
+        Queue<String> notPresented = new ArrayDeque<>();
+        findNotPresentedTags(group, notPresented, rootNode);
+
+        for (int i = 0; i < rootNode.getChildCount(); i++) {
+            DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
+            EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
+            Object subEDT = group.getObjects().get(subUserData.getTag());
+            if (subEDT == null){
+                if (!notPresented.isEmpty()){
+                    String tag = notPresented.remove();
+                    subUserData.setTag(tag);
+                    subEDT = group.getObjects().get(tag);
+                }
+                else {
+                    if (tree.isPathSelected(new TreePath(subnode.getPath()))){
+                        if (i > 0) {
+                            tree.setSelectionPath(
+                                    new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i - 1)).getPath()));
+                        }
+                        else {
+                            tree.setSelectionPath(new TreePath(rootNode.getPath()));
+                        }
+                    }
+                    subnode.removeFromParent();
+                    System.out.println("MainFrame.refresh remoove " + i);
+                    i--;
+                    continue;
+                }
+            }
+            if (subEDT instanceof EDTItem) {
+                refresh(subnode, (EDTItem) subEDT);
+            }
+            else {
+                subUserData.setValue(subEDT);
+            }
+        }
+        while (!notPresented.isEmpty()){
+            String tag = notPresented.remove();
+            DefaultMutableTreeNode node = buildNode(group, group.getObjects().get(tag), tag, -1);
+            rootNode.add(node);
+
+            tree.setSelectionPath(new TreePath(node.getPath()));
+        }
+    }
+
+    private void refresh(DefaultMutableTreeNode rootNode, EDTList list){
+        List<Object> objects = list.getObjects();
+        int selectedIndex = -1;
+        TreePath selected = tree.getSelectionPath();
+        if (selected != null) {
+            DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) selected.getLastPathComponent();
+            if (mutableTreeNode.getParent() != null) {
+                selectedIndex = mutableTreeNode.getParent().getIndex(mutableTreeNode);
+            }
+        }
+        if (rootNode.getChildCount() != list.size()){
+            rootNode.removeAllChildren();
+            for (int i = 0; i < list.size(); i++) {
+                String k = null;
+                Object object = objects.get(i);
+                if (object instanceof EDTItem){
+                    k = ((EDTItem) object).getTag();
+                }
+                DefaultMutableTreeNode subnode = buildNode(list, object, k, i);
+                rootNode.add(subnode);
+                if (object instanceof EDTItem)
+                    refresh(subnode, (EDTItem) object);
+            }
+            if (selectedIndex > 0){
+                tree.setSelectionPath(new TreePath(((DefaultMutableTreeNode)rootNode.getChildAt(selectedIndex-1)).getPath()));
+            }
+            else if (selectedIndex == 0){
+                tree.setSelectionPath(new TreePath(rootNode.getPath()));
+            }
+        }
+        else {
+            for (int i = 0; i < rootNode.getChildCount(); i++) {
+                DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
+                EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
+                Object subEDT = list.getObjects().get(i);
+                if (subEDT instanceof EDTItem) {
+                    refresh(subnode, (EDTItem) subEDT);
+                } else {
+                    subUserData.setValue(subEDT);
+                }
+            }
+        }
+    }
+
     private void refresh(DefaultMutableTreeNode rootNode, EDTItem root) {
         EDTNodeUserData userData = (EDTNodeUserData) rootNode.getUserObject();
         userData.setTag(root.getTag());
@@ -408,95 +519,17 @@ public class MainFrame extends JFrame {
         }
         if (root instanceof EDTGroup) {
             EDTGroup group = (EDTGroup) root;
-            Queue<String> notPresented = new ArrayDeque<>();
-
-            findNotPresentedTags(group, notPresented, rootNode);
-
-            for (int i = 0; i < rootNode.getChildCount(); i++) {
-                DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-                EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-                Object subEDT = group.getObjects().get(subUserData.getTag());
-                if (subEDT == null){
-                    if (!notPresented.isEmpty()){
-                        String tag = notPresented.remove();
-                        subUserData.setTag(tag);
-                        subEDT = group.getObjects().get(tag);
-                    }
-                    else {
-                        if (tree.isPathSelected(new TreePath(subnode.getPath()))){
-                            if (i > 0) {
-                                tree.setSelectionPath(
-                                        new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i - 1)).getPath()));
-                            }
-                            else {
-                                tree.setSelectionPath(new TreePath(rootNode.getPath()));
-                            }
-                        }
-                        subnode.removeFromParent();
-                        System.out.println("MainFrame.refresh remoove " + i);
-                        i--;
-                        continue;
-                    }
-                }
-                if (subEDT instanceof EDTItem) {
-                    refresh(subnode, (EDTItem) subEDT);
-                }
-                else {
-                    subUserData.setValue(subEDT);
-                }
-            }
-            while (!notPresented.isEmpty()){
-                String tag = notPresented.remove();
-                DefaultMutableTreeNode node = buildNode(group, group.getObjects().get(tag), tag, -1);
-                rootNode.add(node);
-            }
+            refresh(rootNode, group);
         }
         else if (root instanceof EDTList) {
             EDTList list = (EDTList) root;
-            List<Object> objects = list.getObjects();
-            int selectedIndex = -1;
-            TreePath selected = tree.getSelectionPath();
-            if (selected != null) {
-                DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) selected.getLastPathComponent();
-                if (mutableTreeNode.getParent() != null) {
-                    selectedIndex = mutableTreeNode.getParent().getIndex(mutableTreeNode);
-                }
-            }
-            if (rootNode.getChildCount() != list.size()){
-                rootNode.removeAllChildren();
-                for (int i = 0; i < list.size(); i++) {
-                    String k = null;
-                    Object object = objects.get(i);
-                    if (object instanceof EDTItem){
-                        k = ((EDTItem) object).getTag();
-                    }
-                    DefaultMutableTreeNode subnode = buildNode(list, object, k, i);
-                    rootNode.add(subnode);
-                    if (object instanceof EDTItem)
-                        refresh(subnode, (EDTItem) object);
-                }
-                if (selectedIndex > 0){
-                    tree.setSelectionPath(new TreePath(((DefaultMutableTreeNode)rootNode.getChildAt(selectedIndex-1)).getPath()));
-                }
-                else if (selectedIndex == 0){
-                    tree.setSelectionPath(new TreePath(rootNode.getPath()));
-                }
-            }
-            else {
-                for (int i = 0; i < rootNode.getChildCount(); i++) {
-                    DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-                    EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-                    Object subEDT = list.getObjects().get(i);
-                    if (subEDT instanceof EDTItem) {
-                        refresh(subnode, (EDTItem) subEDT);
-                    } else {
-                        subUserData.setValue(subEDT);
-                    }
-                }
-            }
+            refresh(rootNode, list);
         }
     }
 
+    /**
+     * Update JTree content without rebuilding whole tree
+     */
     public void refreshTree() {
         DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) tree.getModel().getRoot();
         EDTItem root = context.root;
@@ -516,8 +549,30 @@ public class MainFrame extends JFrame {
         return getUserData((TreeNode) path.getLastPathComponent());
     }
 
+    /**
+     * Called on context.root replaced
+     */
     public void onRootChanged() {
         expansions.clear();
         buildTree();
+    }
+
+    /**
+     * Updates title following pattern: <pre>filename[* - if has changes] - appTitle</pre>
+     */
+    public void updateTitle() {
+        String title = "";
+        if (context.lastFile == null) {
+            title += "untitled";
+        }
+        else {
+            title += context.lastFile.getName();
+        }
+        if (!Actions.isAllSaved()){
+            title += "*";
+        }
+
+        title += " - " + appTitle;
+        setTitle(title);
     }
 }

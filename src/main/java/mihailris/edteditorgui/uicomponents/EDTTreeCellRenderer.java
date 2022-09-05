@@ -1,5 +1,7 @@
-package mihailris.edteditorgui;
+package mihailris.edteditorgui.uicomponents;
 
+import mihailris.edteditorgui.AppContext;
+import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;

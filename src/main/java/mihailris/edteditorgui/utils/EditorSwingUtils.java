@@ -1,4 +1,4 @@
-package mihailris.edteditorgui;
+package mihailris.edteditorgui.utils;
 
 public class EditorSwingUtils {
     public static void configTheme(){

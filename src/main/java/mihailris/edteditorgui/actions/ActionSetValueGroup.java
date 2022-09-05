@@ -1,6 +1,5 @@
 package mihailris.edteditorgui.actions;
 
-import mihailris.edteditorgui.EditorAction;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edtfile.EDTGroup;

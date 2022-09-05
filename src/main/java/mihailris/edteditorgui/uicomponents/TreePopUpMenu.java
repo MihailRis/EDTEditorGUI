@@ -1,5 +1,8 @@
-package mihailris.edteditorgui;
+package mihailris.edteditorgui.uicomponents;
 
+import mihailris.edteditorgui.actions.Actions;
+import mihailris.edteditorgui.EDTNodeUserData;
+import mihailris.edteditorgui.MainFrame;
 import mihailris.edteditorgui.actions.ActionCreateRemoveGroup;
 import mihailris.edteditorgui.actions.ActionCreateRemoveList;
 import mihailris.edtfile.EDTGroup;
@@ -118,6 +121,8 @@ public class TreePopUpMenu extends JPopupMenu {
                 return "";
             case BOOL:
                 return false;
+            case BYTES:
+                return new byte[0];
         }
         throw new IllegalArgumentException(String.valueOf(type));
     }

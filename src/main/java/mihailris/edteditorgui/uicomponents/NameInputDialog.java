@@ -1,4 +1,4 @@
-package mihailris.edteditorgui;
+package mihailris.edteditorgui.uicomponents;
 
 import javax.swing.*;
 import java.awt.*;

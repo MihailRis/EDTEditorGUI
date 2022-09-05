@@ -13,6 +13,7 @@ public class AppContext {
     EDTItem root;
 
     @Autowired
+    public
     MainFrame mainFrame;
 
     File lastFile;
