@@ -42,7 +42,7 @@ public class MainFrame extends JFrame {
 
         setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 600);
+        setSize(550, 600);
 
         JMenuBar mb = new JMenuBar();
         constructMenu(mb);
@@ -63,6 +63,16 @@ public class MainFrame extends JFrame {
         panel.add(rebuildTreeButton);
 
         JScrollPane treeScrollPane = new JScrollPane(tree);
+        JPanel infoPanel = new JPanel();
+        JTextPane itemTitleLabel = new JTextPane();
+        itemTitleLabel.setContentType("text/html");
+        itemTitleLabel.setText("<html><b>Group 'root' with 0 items</b></html>");
+        itemTitleLabel.setEditable(false);
+        itemTitleLabel.setBackground(this.getBackground());
+        itemTitleLabel.setBorder(null);
+        itemTitleLabel.setOpaque(false);
+        infoPanel.add(itemTitleLabel);
+
         JPanel editorPanel = new JPanel();
         Color color = editorPanel.getBackground();
         editorPanel.setBackground(new Color(
@@ -70,7 +80,17 @@ public class MainFrame extends JFrame {
                 (int) (color.getGreen()*0.8f),
                 (int) (color.getBlue()*0.8f)
         ));
-        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JPanel(), editorPanel);
+        JScrollPane editorScrollPane = new JScrollPane();
+        JTextArea editorTextPane = new JTextArea();
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < 100; i++) {
+            text.append("gfgdgsedafgas dfgadsfgasdgasdgasdgasdgasdgasdgasdg\n");
+        }
+        editorTextPane.setText(text.toString());
+        editorScrollPane.add(editorTextPane);
+        editorPanel.add(editorScrollPane);
+
+        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoPanel, editorPanel);
         infoSplitPane.setContinuousLayout(true);
         infoSplitPane.setDividerLocation(250);
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, infoSplitPane);
