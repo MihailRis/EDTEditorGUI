@@ -1,8 +1,7 @@
 package mihailris.edteditorgui;
 
-import mihailris.edteditorgui.actions.ActionOpenEDT;
-import mihailris.edteditorgui.actions.ActionRenameGroupSubItem;
-import mihailris.edteditorgui.actions.ActionSetValueGroup;
+import mihailris.edteditorgui.actions.*;
+import mihailris.edteditorgui.utils.InputChecker;
 import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
@@ -18,6 +17,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -165,8 +165,7 @@ public class MainFrame extends JFrame {
             @Override
             public void treeExpanded(TreeExpansionEvent treeExpansionEvent) {
                 TreePath path = treeExpansionEvent.getPath();
-                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-                EDTNodeUserData data = getUserData(treeNode);
+                EDTNodeUserData data = getUserData(path);
                 System.out.println("expanded "+data.getValue());
                 expansions.put((EDTItem) data.getValue(), true);
             }
@@ -174,10 +173,39 @@ public class MainFrame extends JFrame {
             @Override
             public void treeCollapsed(TreeExpansionEvent treeExpansionEvent) {
                 TreePath path = treeExpansionEvent.getPath();
-                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-                EDTNodeUserData data = getUserData(treeNode);
+                EDTNodeUserData data = getUserData(path);
                 System.out.println("collapsed "+data.getValue());
                 expansions.remove((EDTItem) data.getValue());
+            }
+        });
+        tree.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent keyEvent) {
+                super.keyPressed(keyEvent);
+                if (keyEvent.getKeyCode() == KeyEvent.VK_DELETE){
+                    TreePath selPath = tree.getSelectionPath();
+                    if(selPath != null) {
+                        EDTNodeUserData userData = getUserData(selPath);
+                        EDTItem parent = userData.getParent();
+                        if (parent instanceof EDTGroup) {
+                            Actions.act(new ActionCreateRemoveGroup(
+                                    (EDTGroup) parent,
+                                    userData.getTag(),
+                                    userData.getValue(),
+                                    false
+                            ), context);
+                        }
+                        else if (parent instanceof EDTList){
+                            Actions.act(new ActionCreateRemoveList(
+                                    (EDTList) parent,
+                                    userData.getIndex(),
+                                    userData.getValue(),
+                                    false
+                            ), context);
+                        }
+                    }
+                }
+                System.out.println(keyEvent.getKeyCode()+" "+keyEvent.getKeyChar());
             }
         });
         return tree;
@@ -305,7 +333,6 @@ public class MainFrame extends JFrame {
                         Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
                         if (performed != null){
                             EDTGroup group = (EDTGroup) parentEDT;
-                            System.out.println("MainFrame.setUserObject "+group.getTag()+" "+userData.getValue()+" "+performed);
                             Actions.act(new ActionSetValueGroup(group, userData.getTag(), userData.getValue(), performed, userData), context);
                         }
                         else {
@@ -396,6 +423,15 @@ public class MainFrame extends JFrame {
                         subEDT = group.getObjects().get(tag);
                     }
                     else {
+                        if (tree.isPathSelected(new TreePath(subnode.getPath()))){
+                            if (i > 0) {
+                                tree.setSelectionPath(
+                                        new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i - 1)).getPath()));
+                            }
+                            else {
+                                tree.setSelectionPath(new TreePath(rootNode.getPath()));
+                            }
+                        }
                         subnode.removeFromParent();
                         System.out.println("MainFrame.refresh remoove " + i);
                         i--;
@@ -418,6 +454,14 @@ public class MainFrame extends JFrame {
         else if (root instanceof EDTList) {
             EDTList list = (EDTList) root;
             List<Object> objects = list.getObjects();
+            int selectedIndex = -1;
+            TreePath selected = tree.getSelectionPath();
+            if (selected != null) {
+                DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) selected.getLastPathComponent();
+                if (mutableTreeNode.getParent() != null) {
+                    selectedIndex = mutableTreeNode.getParent().getIndex(mutableTreeNode);
+                }
+            }
             if (rootNode.getChildCount() != list.size()){
                 rootNode.removeAllChildren();
                 for (int i = 0; i < list.size(); i++) {
@@ -430,6 +474,12 @@ public class MainFrame extends JFrame {
                     rootNode.add(subnode);
                     if (object instanceof EDTItem)
                         refresh(subnode, (EDTItem) object);
+                }
+                if (selectedIndex > 0){
+                    tree.setSelectionPath(new TreePath(((DefaultMutableTreeNode)rootNode.getChildAt(selectedIndex-1)).getPath()));
+                }
+                else if (selectedIndex == 0){
+                    tree.setSelectionPath(new TreePath(rootNode.getPath()));
                 }
             }
             else {
@@ -460,6 +510,10 @@ public class MainFrame extends JFrame {
     private static EDTNodeUserData getUserData(TreeNode node){
         DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) node;
         return (EDTNodeUserData) mutableTreeNode.getUserObject();
+    }
+
+    private static EDTNodeUserData getUserData(TreePath path){
+        return getUserData((TreeNode) path.getLastPathComponent());
     }
 
     public void onRootChanged() {
