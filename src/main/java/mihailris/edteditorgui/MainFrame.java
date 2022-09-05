@@ -1,10 +1,10 @@
 package mihailris.edteditorgui;
 
-import mihailris.edteditorgui.actions.*;
-import mihailris.edteditorgui.uicomponents.EDTTreeCellRenderer;
+import mihailris.edteditorgui.actions.ActionOpenEDT;
+import mihailris.edteditorgui.actions.Actions;
+import mihailris.edteditorgui.uicomponents.EditorTree;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
 import mihailris.edteditorgui.utils.EditorSwingUtils;
-import mihailris.edteditorgui.utils.InputChecker;
 import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
@@ -13,37 +13,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.Queue;
-import java.util.*;
 
 @Component
 public class MainFrame extends JFrame {
     @Autowired
     public AppContext context;
 
-    final JTree tree;
-    DefaultTreeModel treeModel;
-    final Map<EDTItem, Boolean> expansions = new HashMap<>();
-    final List<EDTNodeUserData> userDataList = new ArrayList<>();
+    final EditorTree tree;
     private EDTItem selectionParent;
-    TreeCellEditor treeCellEditor;
 
-    private TreePath renaming;
+    public TreePath renaming;
     public MainFrame(){
         EditorSwingUtils.configTheme();
 
@@ -54,7 +49,7 @@ public class MainFrame extends JFrame {
         JMenuBar mb = new JMenuBar();
         constructMenu(mb);
 
-        tree = createTree();
+        tree = new EditorTree(this);
 
         JPanel panel = new JPanel();
 
@@ -64,7 +59,7 @@ public class MainFrame extends JFrame {
             @Override
             public void mousePressed(MouseEvent mouseEvent) {
                 super.mousePressed(mouseEvent);
-                buildTree();
+                tree.buildTree();
             }
         });
         panel.add(rebuildTreeButton);
@@ -115,107 +110,6 @@ public class MainFrame extends JFrame {
                 }
             }
         });
-    }
-
-    public JTextField editorField;
-
-    /**
-     * @return empty configured JTree
-     */
-    private JTree createTree(){
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode("root");
-        JTree tree = new JTree(node);
-        tree.setFocusCycleRoot(true);
-        editorField = new JTextField(10);
-        treeCellEditor = new DefaultCellEditor(editorField);
-        treeCellEditor.addCellEditorListener(new CellEditorListener() {
-            @Override
-            public void editingStopped(ChangeEvent changeEvent) {
-                cancelEdit();
-            }
-
-            @Override
-            public void editingCanceled(ChangeEvent changeEvent) {
-                cancelEdit();
-            }
-
-            private void cancelEdit(){
-                if (renaming != null) {
-                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) renaming.getLastPathComponent();
-                    EDTNodeUserData userData = (EDTNodeUserData) node.getUserObject();
-                    userData.setEditing(true);
-                    renaming = null;
-                }
-            }
-        });
-        tree.setEditable(true);
-        tree.setCellEditor(treeCellEditor);
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                super.mousePressed(e);
-                int selRow = tree.getRowForLocation(e.getX(), e.getY());
-                TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
-                if(selRow != -1) {
-                    if(e.getClickCount() == 1) {
-                        assert selPath != null;
-                        selectByPath(selPath);
-                        int button = e.getButton();
-                        if (button == MouseEvent.BUTTON3) {
-                            openNodeContextMenu(e, selPath);
-                        }
-                    }
-                }
-            }
-        });
-        tree.addTreeExpansionListener(new TreeExpansionListener() {
-            @Override
-            public void treeExpanded(TreeExpansionEvent treeExpansionEvent) {
-                TreePath path = treeExpansionEvent.getPath();
-                EDTNodeUserData data = getUserData(path);
-                System.out.println("expanded "+data.getValue());
-                expansions.put((EDTItem) data.getValue(), true);
-            }
-
-            @Override
-            public void treeCollapsed(TreeExpansionEvent treeExpansionEvent) {
-                TreePath path = treeExpansionEvent.getPath();
-                EDTNodeUserData data = getUserData(path);
-                System.out.println("collapsed "+data.getValue());
-                expansions.remove((EDTItem) data.getValue());
-            }
-        });
-        tree.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent keyEvent) {
-                super.keyPressed(keyEvent);
-                if (keyEvent.getKeyCode() == KeyEvent.VK_DELETE){
-                    TreePath selPath = tree.getSelectionPath();
-                    if(selPath != null) {
-                        EDTNodeUserData userData = getUserData(selPath);
-                        EDTItem parent = userData.getParent();
-                        if (parent instanceof EDTGroup) {
-                            Actions.act(new ActionCreateRemoveGroup(
-                                    (EDTGroup) parent,
-                                    userData.getTag(),
-                                    userData.getValue(),
-                                    false
-                            ), context);
-                        }
-                        else if (parent instanceof EDTList){
-                            Actions.act(new ActionCreateRemoveList(
-                                    (EDTList) parent,
-                                    userData.getIndex(),
-                                    userData.getValue(),
-                                    false
-                            ), context);
-                        }
-                    }
-                }
-                System.out.println(keyEvent.getKeyCode()+" "+keyEvent.getKeyChar());
-            }
-        });
-        return tree;
     }
 
     /**
@@ -307,18 +201,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    /**
-     * Build whole JTree content from scratch
-     */
-    public void buildTree() {
-        userDataList.clear();
-        DefaultMutableTreeNode rootNode = buildNode(null, context.root, context.root.getTag(), -1);
-        treeModel = new DefaultTreeModel(rootNode);
-        tree.setModel(treeModel);
-        tree.setCellRenderer(new EDTTreeCellRenderer(context));
-        refresh(rootNode, context.root);
-    }
-
     public Object getSelectedNode(Object root, Object[] path, int index){
         if (index == path.length)
             return root;
@@ -333,66 +215,15 @@ public class MainFrame extends JFrame {
         return root;
     }
 
-    private DefaultMutableTreeNode buildNode(EDTItem parentEDT, Object root, String key, int index) {
-        EDTNodeUserData edtNodeUserData = new EDTNodeUserData(parentEDT, key, root, index);
-        userDataList.add(edtNodeUserData);
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(edtNodeUserData) {
-            @Override
-            public void setUserObject(Object userObject) {
-                EDTNodeUserData userData = (EDTNodeUserData) this.userObject;
-                if (parentEDT instanceof EDTGroup) {
-                    if (renaming != null) {
-                        String from = userData.getTag();
-                        String into = String.valueOf(userObject);
-                        if (!into.equals(from))
-                            Actions.act(new ActionRenameGroupSubItem(
-                                    (EDTGroup) parentEDT,
-                                    from, into
-                            ), context);
-                    }
-                    else {
-                        Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
-                        if (performed != null){
-                            EDTGroup group = (EDTGroup) parentEDT;
-                            Actions.act(new ActionSetValueGroup(group, userData.getTag(), userData.getValue(), performed, userData), context);
-                        }
-                        else {
-                            System.err.println("invalid input");
-                        }
-                    }
-                }
-                userData.setEditing(true);
-                System.out.println("MainFrame.setUserObject unrenaming");
-                renaming = null;
-            }
-        };
-        if (root instanceof EDTGroup){
-            EDTGroup group = (EDTGroup) root;
-            Map<String, Object> objects = group.getObjects();
-            objects.keySet().stream().sorted().forEach(k -> node.add(buildNode(group, objects.get(k), k, -1)));
-        }
-        if (root instanceof EDTList){
-            EDTList list = (EDTList) root;
-            List<Object> objects = list.getObjects();
-            for (int i = 0; i < objects.size(); i++) {
-                String k = null;
-                Object object = objects.get(i);
-                if (object instanceof EDTItem){
-                    k = ((EDTItem) object).getTag();
-                }
-                node.add(buildNode(list, object, k, i));
-            }
-        }
-        return node;
-    }
 
-    private void openNodeContextMenu(MouseEvent e, TreePath path) {
+
+    public void openNodeContextMenu(MouseEvent e, TreePath path) {
         int row = tree.getClosestRowForLocation(e.getX(), e.getY());
         tree.setSelectionRow(row);
         new TreePopUpMenu(this, path).show(e.getComponent(), e.getX(), e.getY());
     }
 
-    private void selectByPath(TreePath path) {
+    public void selectByPath(TreePath path) {
         selectionParent = null;
         getSelectedNode(context.root, path.getPath(), 1);
     }
@@ -405,147 +236,12 @@ public class MainFrame extends JFrame {
         tree.startEditingAtPath(path);
     }
 
-    private void findNotPresentedTags(EDTGroup group, Queue<String> notPresented, DefaultMutableTreeNode rootNode) {
-        for (Map.Entry<String, Object> entry : group.getObjects().entrySet()){
-            String tag = entry.getKey();
-            boolean used = false;
-            for (int i = 0; i < rootNode.getChildCount(); i++) {
-                EDTNodeUserData subUserData = getUserData(rootNode.getChildAt(i));
-                if (tag.equals(subUserData.getTag())) {
-                    used = true;
-                    break;
-                }
-            }
-            if (!used)
-                notPresented.add(tag);
-        }
-    }
-
-    private void refresh(DefaultMutableTreeNode rootNode, EDTGroup group){
-        Queue<String> notPresented = new ArrayDeque<>();
-        findNotPresentedTags(group, notPresented, rootNode);
-
-        for (int i = 0; i < rootNode.getChildCount(); i++) {
-            DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-            EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-            Object subEDT = group.getObjects().get(subUserData.getTag());
-            if (subEDT == null){
-                if (!notPresented.isEmpty()){
-                    String tag = notPresented.remove();
-                    subUserData.setTag(tag);
-                    subEDT = group.getObjects().get(tag);
-                }
-                else {
-                    if (tree.isPathSelected(new TreePath(subnode.getPath()))){
-                        if (i > 0) {
-                            tree.setSelectionPath(
-                                    new TreePath(((DefaultMutableTreeNode) rootNode.getChildAt(i - 1)).getPath()));
-                        }
-                        else {
-                            tree.setSelectionPath(new TreePath(rootNode.getPath()));
-                        }
-                    }
-                    subnode.removeFromParent();
-                    System.out.println("MainFrame.refresh remoove " + i);
-                    i--;
-                    continue;
-                }
-            }
-            if (subEDT instanceof EDTItem) {
-                refresh(subnode, (EDTItem) subEDT);
-            }
-            else {
-                subUserData.setValue(subEDT);
-            }
-        }
-        while (!notPresented.isEmpty()){
-            String tag = notPresented.remove();
-            DefaultMutableTreeNode node = buildNode(group, group.getObjects().get(tag), tag, -1);
-            rootNode.add(node);
-
-            tree.setSelectionPath(new TreePath(node.getPath()));
-        }
-    }
-
-    private void refresh(DefaultMutableTreeNode rootNode, EDTList list){
-        List<Object> objects = list.getObjects();
-        int selectedIndex = -1;
-        TreePath selected = tree.getSelectionPath();
-        if (selected != null) {
-            DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) selected.getLastPathComponent();
-            if (mutableTreeNode.getParent() != null) {
-                selectedIndex = mutableTreeNode.getParent().getIndex(mutableTreeNode);
-            }
-        }
-        if (rootNode.getChildCount() != list.size()){
-            rootNode.removeAllChildren();
-            for (int i = 0; i < list.size(); i++) {
-                String k = null;
-                Object object = objects.get(i);
-                if (object instanceof EDTItem){
-                    k = ((EDTItem) object).getTag();
-                }
-                DefaultMutableTreeNode subnode = buildNode(list, object, k, i);
-                rootNode.add(subnode);
-                if (object instanceof EDTItem)
-                    refresh(subnode, (EDTItem) object);
-            }
-            if (selectedIndex > 0){
-                tree.setSelectionPath(new TreePath(((DefaultMutableTreeNode)rootNode.getChildAt(selectedIndex-1)).getPath()));
-            }
-            else if (selectedIndex == 0){
-                tree.setSelectionPath(new TreePath(rootNode.getPath()));
-            }
-        }
-        else {
-            for (int i = 0; i < rootNode.getChildCount(); i++) {
-                DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-                EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-                Object subEDT = list.getObjects().get(i);
-                if (subEDT instanceof EDTItem) {
-                    refresh(subnode, (EDTItem) subEDT);
-                } else {
-                    subUserData.setValue(subEDT);
-                }
-            }
-        }
-    }
-
-    private void refresh(DefaultMutableTreeNode rootNode, EDTItem root) {
-        EDTNodeUserData userData = (EDTNodeUserData) rootNode.getUserObject();
-        userData.setTag(root.getTag());
-        if (expansions.get(root) != null){
-            tree.expandPath(new TreePath(rootNode.getPath()));
-        }
-        if (root instanceof EDTGroup) {
-            EDTGroup group = (EDTGroup) root;
-            refresh(rootNode, group);
-        }
-        else if (root instanceof EDTList) {
-            EDTList list = (EDTList) root;
-            refresh(rootNode, list);
-        }
-    }
-
-    /**
-     * Update JTree content without rebuilding whole tree
-     */
-    public void refreshTree() {
-        DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) tree.getModel().getRoot();
-        EDTItem root = context.root;
-
-        refresh(rootNode, root);
-
-        tree.updateUI();
-        tree.repaint();
-    }
-
-    private static EDTNodeUserData getUserData(TreeNode node){
+    public static EDTNodeUserData getUserData(TreeNode node){
         DefaultMutableTreeNode mutableTreeNode = (DefaultMutableTreeNode) node;
         return (EDTNodeUserData) mutableTreeNode.getUserObject();
     }
 
-    private static EDTNodeUserData getUserData(TreePath path){
+    public static EDTNodeUserData getUserData(TreePath path){
         return getUserData((TreeNode) path.getLastPathComponent());
     }
 
@@ -553,8 +249,7 @@ public class MainFrame extends JFrame {
      * Called on context.root replaced
      */
     public void onRootChanged() {
-        expansions.clear();
-        buildTree();
+        tree.onRootChanged();
     }
 
     /**
@@ -574,5 +269,10 @@ public class MainFrame extends JFrame {
 
         title += " - " + EDTEditorGUIApp.title + " " + EDTEditorGUIApp.versionString;
         setTitle(title);
+    }
+
+    public void onSomethingChanged() {
+        tree.refreshTree();
+        updateTitle();
     }
 }

@@ -11,6 +11,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 
+/**
+ * Custom TreeCellRenderer for EDTEditorGUI
+ */
 public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
     private static final String SPAN_FORMAT = "<span style='color:%s;'>%s</span>";
 

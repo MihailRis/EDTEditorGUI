@@ -10,7 +10,7 @@ import java.io.File;
 
 @Component
 public class AppContext {
-    EDTItem root;
+    public EDTItem root;
 
     @Autowired
     public

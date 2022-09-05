@@ -16,8 +16,7 @@ public class Actions {
         pointer++;
         action.action(context);
         System.out.println("-- le action "+action);
-        context.mainFrame.refreshTree();
-        context.mainFrame.updateTitle();
+        context.mainFrame.onSomethingChanged();
     }
 
     public static void undo(AppContext context) {
@@ -28,8 +27,7 @@ public class Actions {
         EditorAction action = history.get(pointer);
         System.out.println("-- undo action "+action);
         action.revert(context);
-        context.mainFrame.refreshTree();
-        context.mainFrame.updateTitle();
+        context.mainFrame.onSomethingChanged();
     }
 
     public static void redo(AppContext context) {
@@ -39,17 +37,7 @@ public class Actions {
         EditorAction action = history.get(pointer++);
         System.out.println("-- redo action "+action);
         action.action(context);
-        context.mainFrame.refreshTree();
-        context.mainFrame.updateTitle();
-    }
-
-    public static void clearHistory(){
-        history.clear();
-        pointer = 0;
-    }
-
-    public static int getHistorySize(){
-        return pointer;
+        context.mainFrame.onSomethingChanged();
     }
 
     public static boolean isAllSaved(){
