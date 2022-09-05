@@ -60,7 +60,6 @@ public class TreePopUpMenu extends JPopupMenu {
                 }
                 else if (parent instanceof EDTList){
                     EDTList list = (EDTList) parent;
-                    // fixme
                     Actions.act(new ActionCreateRemoveList(list, userData.getIndex(), value, false), frame.context);
                 }
             });

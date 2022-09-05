@@ -366,21 +366,23 @@ public class MainFrame extends JFrame {
         }
         else if (root instanceof EDTList) {
             EDTList list = (EDTList) root;
-            for (int i = 0; i < rootNode.getChildCount(); i++) {
-                DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
-                EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
-                int index = subUserData.getIndex();
-                if (index == -1){
-                    subnode.removeFromParent();
-                    i--;
-                    continue;
+            if (rootNode.getChildCount() != list.size()){
+                rootNode.removeAllChildren();
+                for (int i = 0; i < list.size(); i++) {
+                    DefaultMutableTreeNode subnode = buildNode(list, list.getObjects().get(i), String.valueOf(i));
+                    rootNode.add(subnode);
                 }
-                Object subEDT = list.getObjects().get(index);
-                if (subEDT instanceof EDTItem) {
-                    refresh(subnode, (EDTItem) subEDT);
-                }
-                else {
-                    subUserData.setValue(subEDT);
+            }
+            else {
+                for (int i = 0; i < rootNode.getChildCount(); i++) {
+                    DefaultMutableTreeNode subnode = (DefaultMutableTreeNode) rootNode.getChildAt(i);
+                    EDTNodeUserData subUserData = (EDTNodeUserData) subnode.getUserObject();
+                    Object subEDT = list.getObjects().get(i);
+                    if (subEDT instanceof EDTItem) {
+                        refresh(subnode, (EDTItem) subEDT);
+                    } else {
+                        subUserData.setValue(subEDT);
+                    }
                 }
             }
         }

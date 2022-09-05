@@ -29,6 +29,6 @@ public class ActionCreateRemoveList implements EditorAction {
         if (add)
             list.getObjects().remove(index);
         else
-            list.getObjects().add(index);
+            list.getObjects().add(index, value);
     }
 }
