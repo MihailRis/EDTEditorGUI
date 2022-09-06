@@ -1,8 +1,10 @@
 package mihailris.edteditorgui;
 
 import mihailris.edteditorgui.actions.ActionOpenEDT;
+import mihailris.edteditorgui.actions.ActionSetValueGroup;
 import mihailris.edteditorgui.actions.Actions;
 import mihailris.edteditorgui.uicomponents.EditorTree;
+import mihailris.edteditorgui.uicomponents.TextEditor;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
 import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edtfile.EDT;
@@ -35,6 +37,7 @@ public class MainFrame extends JFrame {
     public AppContext context;
 
     final EditorTree tree;
+    TextEditor textEditor;
 
     public TreePath renaming;
     public MainFrame(){
@@ -42,14 +45,14 @@ public class MainFrame extends JFrame {
 
         setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(550, 600);
+        setSize(700, 600);
 
-        JMenuBar mb = new JMenuBar();
-        constructMenu(mb);
+        JMenuBar menuBar = new JMenuBar();
+        constructMenu(menuBar);
 
         tree = new EditorTree(this);
 
-        JPanel panel = new JPanel();
+        JPanel footerPanel = new JPanel();
 
         // Button for tree refreshing debug
         JButton rebuildTreeButton = new JButton("Rebuild Tree");
@@ -60,7 +63,7 @@ public class MainFrame extends JFrame {
                 tree.buildTree();
             }
         });
-        panel.add(rebuildTreeButton);
+        footerPanel.add(rebuildTreeButton);
 
         JScrollPane treeScrollPane = new JScrollPane(tree);
         JPanel infoPanel = new JPanel();
@@ -73,24 +76,18 @@ public class MainFrame extends JFrame {
         itemTitleLabel.setOpaque(false);
         infoPanel.add(itemTitleLabel);
 
-        JPanel editorPanel = new JPanel();
-        Color color = editorPanel.getBackground();
-        editorPanel.setBackground(new Color(
-                (int) (color.getRed()*0.8f),
-                (int) (color.getGreen()*0.8f),
-                (int) (color.getBlue()*0.8f)
-        ));
-        JScrollPane editorScrollPane = new JScrollPane();
-        JTextArea editorTextPane = new JTextArea();
-        StringBuilder text = new StringBuilder();
-        for (int i = 0; i < 100; i++) {
-            text.append("gfgdgsedafgas dfgadsfgasdgasdgasdgasdgasdgasdgasdg\n");
-        }
-        editorTextPane.setText(text.toString());
-        editorScrollPane.add(editorTextPane);
-        editorPanel.add(editorScrollPane);
+        JButton button = new JButton("Update");
+        button.addActionListener(actionEvent -> {
+            TreePath path = tree.getSelectionPath();
+            assert path != null;
+            EDTNodeUserData userData = getUserData(path);
+            Actions.act(new ActionSetValueGroup((EDTGroup) userData.getParent(), userData.getTag(), userData.getValue(), textEditor.getText(), userData), context);
+        });
+        infoPanel.add(button);
 
-        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoPanel, editorPanel);
+        textEditor = new TextEditor();
+
+        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoPanel, textEditor.getContainer());
         infoSplitPane.setContinuousLayout(true);
         infoSplitPane.setDividerLocation(250);
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, infoSplitPane);
@@ -98,8 +95,8 @@ public class MainFrame extends JFrame {
         splitPane.setContinuousLayout(true);
 
         Container contentPane = getContentPane();
-        contentPane.add(BorderLayout.SOUTH, panel);
-        contentPane.add(BorderLayout.NORTH, mb);
+        contentPane.add(BorderLayout.SOUTH, footerPanel);
+        contentPane.add(BorderLayout.NORTH, menuBar);
         contentPane.add(BorderLayout.CENTER, splitPane);
 
         configureDrop();
@@ -241,6 +238,12 @@ public class MainFrame extends JFrame {
 
     public void selectByPath(TreePath path) {
         getSelectedNode(context.root, path.getPath(), 1);
+        EDTNodeUserData userData = getUserData(path);
+        if (userData.getValue() instanceof String){
+            textEditor.setText((String) userData.getValue());
+        } else {
+            textEditor.setText("");
+        }
     }
 
     public void startRenaming(TreePath path) {

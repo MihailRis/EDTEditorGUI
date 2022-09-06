@@ -34,6 +34,9 @@ public class EDTTreeCellRenderer extends DefaultTreeCellRenderer {
         {
             final Object edtValue = userObject.getValue();
             String valueString = String.valueOf(edtValue);
+            if (valueString.length() > 40){
+                valueString = valueString.substring(0, 40) + "...";
+            }
             EDTItem parentNode = userObject.getParent();
             boolean isListItem = false;
             if (parentNode != null) {
