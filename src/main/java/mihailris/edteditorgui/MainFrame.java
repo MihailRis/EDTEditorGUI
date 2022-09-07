@@ -45,7 +45,7 @@ public class MainFrame extends JFrame {
 
         setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(700, 600);
+        setSize(900, 600);
 
         JMenuBar menuBar = new JMenuBar();
         constructMenu(menuBar);
@@ -89,7 +89,7 @@ public class MainFrame extends JFrame {
 
         JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoPanel, textEditor.getContainer());
         infoSplitPane.setContinuousLayout(true);
-        infoSplitPane.setDividerLocation(250);
+        infoSplitPane.setDividerLocation(200);
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, infoSplitPane);
         splitPane.setDividerLocation(250);
         splitPane.setContinuousLayout(true);
@@ -198,6 +198,7 @@ public class MainFrame extends JFrame {
      * @param file file where to write
      */
     private void saveEDTToFile(File file) {
+        textEditor.apply(context);
         if (file == null){
             FileDialog fileChooser = new FileDialog(this);
             fileChooser.setMode(FileDialog.SAVE);
@@ -240,8 +241,9 @@ public class MainFrame extends JFrame {
         getSelectedNode(context.root, path.getPath(), 1);
         EDTNodeUserData userData = getUserData(path);
         if (userData.getValue() instanceof String){
-            textEditor.setText((String) userData.getValue());
+            textEditor.open(userData);
         } else {
+            textEditor.applyAndClose(context);
             textEditor.setText("");
         }
     }
