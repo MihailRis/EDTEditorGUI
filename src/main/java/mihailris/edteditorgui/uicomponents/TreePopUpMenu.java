@@ -1,5 +1,6 @@
 package mihailris.edteditorgui.uicomponents;
 
+import mihailris.edteditorgui.actions.ActionSetValueGroup;
 import mihailris.edteditorgui.actions.Actions;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
@@ -17,11 +18,13 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.nio.charset.StandardCharsets;
 
 public class TreePopUpMenu extends JPopupMenu {
     JMenu subnodeItem;
     JMenuItem renameItem;
     JMenuItem deleteItem;
+    JMenuItem convertItem;
 
     public TreePopUpMenu(MainFrame frame, TreePath path){
         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -54,6 +57,29 @@ public class TreePopUpMenu extends JPopupMenu {
         add(renameItem);
 
         final EDTItem parent = userData.getParent();
+        if (userData.getValue() instanceof byte[]){
+            convertItem = new JMenuItem("Decode to String");
+            convertItem.addMouseListener(new MouseInputAdapter() {
+                @Override
+                public void mousePressed(MouseEvent mouseEvent) {
+                    String string;
+                    try {
+                        string = new String((byte[]) userData.getValue(), StandardCharsets.UTF_8);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        return;
+                    }
+                    if (parent instanceof EDTGroup) {
+                        Actions.act(new ActionSetValueGroup((EDTGroup) parent, userData.getTag(), userData.getValue(), string, userData), frame.context);
+                    } else {
+                        // todo: fixme
+                    }
+                    frame.selectByPath(path);
+                }
+            });
+            add(convertItem);
+        }
+
         if (parent != null) {
             deleteItem = new JMenuItem("Delete");
             deleteItem.addActionListener(actionEvent -> {

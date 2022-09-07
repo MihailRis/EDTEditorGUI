@@ -85,7 +85,6 @@ public class EditorTree extends JTree {
             public void treeExpanded(TreeExpansionEvent treeExpansionEvent) {
                 TreePath path = treeExpansionEvent.getPath();
                 EDTNodeUserData data = MainFrame.getUserData(path);
-                System.out.println("expanded "+data.getValue());
                 expansions.put((EDTItem) data.getValue(), true);
             }
 
@@ -93,7 +92,6 @@ public class EditorTree extends JTree {
             public void treeCollapsed(TreeExpansionEvent treeExpansionEvent) {
                 TreePath path = treeExpansionEvent.getPath();
                 EDTNodeUserData data = MainFrame.getUserData(path);
-                System.out.println("collapsed "+data.getValue());
                 expansions.remove((EDTItem) data.getValue());
             }
         };
@@ -176,7 +174,6 @@ public class EditorTree extends JTree {
                     }
                 }
                 userData.setEditing(true);
-                System.out.println("MainFrame.setUserObject unrenaming");
                 mainFrame.renaming = null;
             }
         };
@@ -216,6 +213,12 @@ public class EditorTree extends JTree {
         }
     }
 
+    @Override
+    public void setSelectionPath(TreePath treePath) {
+        super.setSelectionPath(treePath);
+        mainFrame.selectByPath(treePath);
+    }
+
     private void refresh(DefaultMutableTreeNode rootNode, EDTGroup group){
         Queue<String> notPresented = new ArrayDeque<>();
         findNotPresentedTags(group, notPresented, rootNode);
@@ -241,7 +244,6 @@ public class EditorTree extends JTree {
                         }
                     }
                     subnode.removeFromParent();
-                    System.out.println("MainFrame.refresh remoove " + i);
                     i--;
                     continue;
                 }

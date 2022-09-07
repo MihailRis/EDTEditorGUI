@@ -1,7 +1,6 @@
 package mihailris.edteditorgui;
 
 import mihailris.edteditorgui.actions.ActionOpenEDT;
-import mihailris.edteditorgui.actions.ActionSetValueGroup;
 import mihailris.edteditorgui.actions.Actions;
 import mihailris.edteditorgui.uicomponents.EditorTree;
 import mihailris.edteditorgui.uicomponents.TextEditor;
@@ -76,16 +75,7 @@ public class MainFrame extends JFrame {
         itemTitleLabel.setOpaque(false);
         infoPanel.add(itemTitleLabel);
 
-        JButton button = new JButton("Update");
-        button.addActionListener(actionEvent -> {
-            TreePath path = tree.getSelectionPath();
-            assert path != null;
-            EDTNodeUserData userData = getUserData(path);
-            Actions.act(new ActionSetValueGroup((EDTGroup) userData.getParent(), userData.getTag(), userData.getValue(), textEditor.getText(), userData), context);
-        });
-        infoPanel.add(button);
-
-        textEditor = new TextEditor();
+        textEditor = new TextEditor(this);
 
         JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoPanel, textEditor.getContainer());
         infoSplitPane.setContinuousLayout(true);
@@ -117,7 +107,7 @@ public class MainFrame extends JFrame {
                     if (droppedFiles.size() != 1)
                         return;
                     File file = droppedFiles.get(0);
-                    EDTItem edtItem = EDT.read(Files.readAllBytes(file.toPath()));
+                    EDTItem edtItem = EDT.read(Files.readAllBytes(file.toPath()), 0);
                     context.setLastFile(file);
                     Actions.act(new ActionOpenEDT(context.root, edtItem), context);
                 } catch (Exception e){

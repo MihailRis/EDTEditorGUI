@@ -2,6 +2,7 @@ package mihailris.edteditorgui.uicomponents;
 
 import mihailris.edteditorgui.AppContext;
 import mihailris.edteditorgui.EDTNodeUserData;
+import mihailris.edteditorgui.MainFrame;
 import mihailris.edteditorgui.actions.ActionSetValueGroup;
 import mihailris.edteditorgui.actions.Actions;
 import mihailris.edtfile.EDTGroup;
@@ -14,12 +15,15 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Element;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class TextEditor {
     private final JPanel panel;
-    private final JScrollPane editorScrollPane;
+    private JScrollPane editorScrollPane;
     private final JTextArea editorTextArea;
     private final JTextArea linesArea;
     private final JToolBar toolBar;
@@ -28,15 +32,16 @@ public class TextEditor {
     private Object lineSelectionTag;
     private EDTNodeUserData userData;
     private int prevLines;
+    private boolean linesEnumeration = true;
 
-    public TextEditor() {
+    public TextEditor(MainFrame mainFrame) {
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
         editorTextArea = new JTextArea();
         editorTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 15));
         editorTextArea.setTabSize(4);
+        editorTextArea.setMargin(new Insets(0, 2, 0, 2));
 
-        editorScrollPane = new JScrollPane(editorTextArea);
         Color color = editorTextArea.getBackground();
         editorTextArea.setBackground(new Color(
                 (int) (color.getRed()*0.8f),
@@ -44,9 +49,15 @@ public class TextEditor {
                 (int) (color.getBlue()*0.8f)
         ));
 
-        String text = "";
-        linesArea = new JTextArea("1   ");
+        linesArea = new JTextArea();
+        linesArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
+
+        Color foregroundColor = linesArea.getForeground();
+        linesArea.setForeground(new Color(foregroundColor.getRed(), foregroundColor.getGreen(), foregroundColor.getBlue(), 75));
+        linesArea.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        linesArea.setMargin(new Insets(0, 2, 0, 2));
         linesArea.setEditable(false);
+        linesArea.setText("1 ");
         editorTextArea.getDocument().addDocumentListener(new DocumentListener() {
             public String getText() {
                 int actualLines = editorTextArea.getLineCount();
@@ -54,8 +65,12 @@ public class TextEditor {
                     int caretPosition = editorTextArea.getDocument().getLength();
                     String separator = System.getProperty("line.separator");
                     Element root = editorTextArea.getDocument().getDefaultRootElement();
-                    StringBuilder text = new StringBuilder("1" + separator);
-                    for (int i = 2; i < root.getElementIndex(caretPosition) + 2; i++) {
+                    StringBuilder text = new StringBuilder("1 " + separator);
+                    int length = root.getElementIndex(caretPosition);
+                    for (int i = 2; i < length + 2 && i < 10; i++) {
+                        text.append(i).append(' ').append(separator);
+                    }
+                    for (int i = 10; i < length + 2; i++) {
                         text.append(i).append(separator);
                     }
                     prevLines = actualLines;
@@ -93,8 +108,7 @@ public class TextEditor {
             }
         });
         editorTextArea.setSelectionColor(new Color(70, 90, 180));
-        editorTextArea.setText(text);
-        editorScrollPane.setRowHeaderView(linesArea);
+        editorTextArea.setText("");
 
         highlighter = (DefaultHighlighter)editorTextArea.getHighlighter();
         painter = new DefaultHighlighter.DefaultHighlightPainter(new Color(
@@ -114,15 +128,48 @@ public class TextEditor {
 
         panel.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 50)));
 
-        JButton convertToBytesButton = new JButton("Convert to bytes");
-        convertToBytesButton.addActionListener(actionEvent -> {
-            // vvv
-        });
-
         toolBar = new JToolBar();
-        toolBar.add(convertToBytesButton);
+        ImageIcon icon = new ImageIcon(
+                Objects.requireNonNull(TextEditor.class.getResource("/images/line_nums.png")));
+
+        Action linesEnumButton = new AbstractAction("123", icon) {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                linesEnumeration = !linesEnumeration;
+                if (linesEnumeration) {
+                    editorScrollPane.setRowHeaderView(linesArea);
+                } else {
+                    editorScrollPane.setRowHeaderView(null);
+                }
+            }
+        };
+        toolBar.add(linesEnumButton);
+
         toolBar.addSeparator();
+
+        JButton convertToBytesButton = new JButton("Convert to Bytes");
+        convertToBytesButton.addActionListener(actionEvent -> {
+            apply(mainFrame.context, getText().getBytes(StandardCharsets.UTF_8));
+            close();
+        });
+        toolBar.add(convertToBytesButton);
+
+        JButton button = new JButton("Update");
+        button.addActionListener(actionEvent -> Actions.act(
+                new ActionSetValueGroup(
+                        (EDTGroup) userData.getParent(),
+                        userData.getTag(),
+                        userData.getValue(),
+                        getText(),
+                        userData),
+                mainFrame.context));
+        toolBar.add(button);
+
         panel.add(toolBar, BorderLayout.NORTH);
+
+        editorScrollPane = new JScrollPane(editorTextArea);
+        if (linesEnumeration)
+            editorScrollPane.setRowHeaderView(linesArea);
         panel.add(editorScrollPane, BorderLayout.CENTER);
         setEnabled(false);
     }
@@ -171,13 +218,20 @@ public class TextEditor {
     }
 
     public void apply(AppContext context){
+        apply(context, getText());
+    }
+
+    public void apply(AppContext context, Object value){
         if (userData == null)
             return;
 
         EDTItem parent = userData.getParent();
         if (userData.getParent() instanceof EDTGroup) {
             EDTGroup group = (EDTGroup) parent;
-            Actions.act(new ActionSetValueGroup(group, userData.getTag(), userData.getValue(), getText(), userData), context);
+            Object previous = userData.getValue();
+            if (!previous.equals(value)) {
+                Actions.act(new ActionSetValueGroup(group, userData.getTag(), previous, value, userData), context);
+            }
         }
     }
 
@@ -185,6 +239,10 @@ public class TextEditor {
         if (userData == null)
             return;
         apply(context);
+        close();
+    }
+
+    public void close() {
         editorTextArea.setText("");
         userData = null;
         setEnabled(false);
