@@ -3,11 +3,8 @@ package mihailris.edteditorgui.uicomponents;
 import mihailris.edteditorgui.AppContext;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
-import mihailris.edteditorgui.actions.ActionSetValueGroup;
-import mihailris.edteditorgui.actions.Actions;
+import mihailris.edteditorgui.actions.ActionsUtil;
 import mihailris.edteditorgui.utils.ImageUtils;
-import mihailris.edtfile.EDTGroup;
-import mihailris.edtfile.EDTItem;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -61,6 +58,7 @@ public class TextEditor {
         editorTextArea.getDocument().addDocumentListener(new DocumentListener() {
             public String getText() {
                 int actualLines = editorTextArea.getLineCount();
+                mainFrame.infoPanel.update(actualLines, editorTextArea.getText().length());
                 if (prevLines != actualLines) {
                     int caretPosition = editorTextArea.getDocument().getLength();
                     String separator = System.getProperty("line.separator");
@@ -156,14 +154,7 @@ public class TextEditor {
         toolBar.add(convertToBytesButton);
 
         JButton button = new JButton("Update");
-        button.addActionListener(actionEvent -> Actions.act(
-                new ActionSetValueGroup(
-                        (EDTGroup) userData.getParent(),
-                        userData.getTag(),
-                        userData.getValue(),
-                        getText(),
-                        userData),
-                mainFrame.context));
+        button.addActionListener(actionEvent -> ActionsUtil.actionSetValue(userData, getText(), mainFrame.context));
         toolBar.add(button);
 
         panel.add(toolBar, BorderLayout.NORTH);
@@ -206,7 +197,7 @@ public class TextEditor {
         setEnabled(true);
     }
 
-    public JComponent getContainer(){
+    public JComponent getRootComponent(){
         return panel;
     }
 
@@ -226,13 +217,8 @@ public class TextEditor {
         if (userData == null)
             return;
 
-        EDTItem parent = userData.getParent();
-        if (userData.getParent() instanceof EDTGroup) {
-            EDTGroup group = (EDTGroup) parent;
-            Object previous = userData.getValue();
-            if (!previous.equals(value)) {
-                Actions.act(new ActionSetValueGroup(group, userData.getTag(), previous, value, userData), context);
-            }
+        if (!userData.getValue().equals(value)) {
+            ActionsUtil.actionSetValue(userData, value, context);
         }
     }
 
@@ -247,5 +233,9 @@ public class TextEditor {
         editorTextArea.setText("");
         userData = null;
         setEnabled(false);
+    }
+
+    public int getLineCount() {
+        return editorTextArea.getLineCount();
     }
 }

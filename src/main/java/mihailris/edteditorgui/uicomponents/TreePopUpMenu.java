@@ -1,11 +1,8 @@
 package mihailris.edteditorgui.uicomponents;
 
-import mihailris.edteditorgui.actions.ActionSetValueGroup;
-import mihailris.edteditorgui.actions.Actions;
+import mihailris.edteditorgui.actions.*;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
-import mihailris.edteditorgui.actions.ActionCreateRemoveGroup;
-import mihailris.edteditorgui.actions.ActionCreateRemoveList;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
@@ -69,11 +66,7 @@ public class TreePopUpMenu extends JPopupMenu {
                         e.printStackTrace();
                         return;
                     }
-                    if (parent instanceof EDTGroup) {
-                        Actions.act(new ActionSetValueGroup((EDTGroup) parent, userData.getTag(), userData.getValue(), string, userData), frame.context);
-                    } else {
-                        // todo: fixme
-                    }
+                    ActionsUtil.actionSetValue(userData, string, frame.context);
                     frame.selectByPath(path);
                 }
             });

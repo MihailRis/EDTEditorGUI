@@ -10,10 +10,7 @@ import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
 
 import javax.swing.*;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.*;
 import javax.swing.tree.*;
 import java.awt.event.*;
 import java.util.*;
@@ -56,6 +53,12 @@ public class EditorTree extends JTree {
         addMouseListener(createMouseListener());
         addTreeExpansionListener(createTreeExpansionListener());
         addKeyListener(createTreeKeyListener());
+        addTreeSelectionListener(treeSelectionEvent -> {
+            TreePath path = treeSelectionEvent.getPath();
+            if (path == mainFrame.getLastSelectedPath())
+                return;
+            mainFrame.selectByPath(path);
+        });
     }
 
     private MouseListener createMouseListener(){
@@ -152,8 +155,9 @@ public class EditorTree extends JTree {
             @Override
             public void setUserObject(Object userObject) {
                 EDTNodeUserData userData = (EDTNodeUserData) this.userObject;
+                boolean renaming = mainFrame.renaming != null;
                 if (parentEDT instanceof EDTGroup) {
-                    if (mainFrame.renaming != null) {
+                    if (renaming) {
                         String from = userData.getTag();
                         String into = String.valueOf(userObject);
                         if (!into.equals(from))
@@ -162,15 +166,13 @@ public class EditorTree extends JTree {
                                     from, into
                             ), mainFrame.context);
                     }
-                    else {
-                        Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
-                        if (performed != null){
-                            EDTGroup group = (EDTGroup) parentEDT;
-                            Actions.act(new ActionSetValueGroup(group, userData.getTag(), userData.getValue(), performed, userData), mainFrame.context);
-                        }
-                        else {
-                            System.err.println("invalid input");
-                        }
+                }
+                if (!renaming){
+                    Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
+                    if (performed != null){
+                        ActionsUtil.actionSetValue(userData, performed, mainFrame.context);
+                    } else {
+                        System.err.println("invalid input");
                     }
                 }
                 userData.setEditing(true);

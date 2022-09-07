@@ -3,6 +3,7 @@ package mihailris.edteditorgui;
 import mihailris.edteditorgui.actions.ActionOpenEDT;
 import mihailris.edteditorgui.actions.Actions;
 import mihailris.edteditorgui.uicomponents.EditorTree;
+import mihailris.edteditorgui.uicomponents.InfoPanel;
 import mihailris.edteditorgui.uicomponents.TextEditor;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
 import mihailris.edteditorgui.utils.EditorSwingUtils;
@@ -36,7 +37,9 @@ public class MainFrame extends JFrame {
     public AppContext context;
 
     final EditorTree tree;
-    TextEditor textEditor;
+    public TextEditor textEditor;
+    public InfoPanel infoPanel;
+    private TreePath lastSelectedPath;
 
     public TreePath renaming;
     public MainFrame(){
@@ -65,21 +68,15 @@ public class MainFrame extends JFrame {
         footerPanel.add(rebuildTreeButton);
 
         JScrollPane treeScrollPane = new JScrollPane(tree);
-        JPanel infoPanel = new JPanel();
-        JTextPane itemTitleLabel = new JTextPane();
-        itemTitleLabel.setContentType("text/html");
-        itemTitleLabel.setText("<html><b>Group 'root' with 0 items</b></html>");
-        itemTitleLabel.setEditable(false);
-        itemTitleLabel.setBackground(this.getBackground());
-        itemTitleLabel.setBorder(null);
-        itemTitleLabel.setOpaque(false);
-        infoPanel.add(itemTitleLabel);
 
         textEditor = new TextEditor(this);
+        infoPanel = new InfoPanel();
+        infoPanel.set(null);
 
-        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoPanel, textEditor.getContainer());
+        JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                infoPanel.getRootComponent(), textEditor.getRootComponent());
         infoSplitPane.setContinuousLayout(true);
-        infoSplitPane.setDividerLocation(200);
+        infoSplitPane.setDividerLocation(150);
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, infoSplitPane);
         splitPane.setDividerLocation(250);
         splitPane.setContinuousLayout(true);
@@ -90,6 +87,10 @@ public class MainFrame extends JFrame {
         contentPane.add(BorderLayout.CENTER, splitPane);
 
         configureDrop();
+    }
+
+    public TreePath getLastSelectedPath() {
+        return lastSelectedPath;
     }
 
     /**
@@ -228,8 +229,10 @@ public class MainFrame extends JFrame {
     }
 
     public void selectByPath(TreePath path) {
+        lastSelectedPath = path;
         getSelectedNode(context.root, path.getPath(), 1);
         EDTNodeUserData userData = getUserData(path);
+        infoPanel.set(userData);
         if (userData.getValue() instanceof String){
             textEditor.open(userData);
         } else {
@@ -287,5 +290,6 @@ public class MainFrame extends JFrame {
     public void onSomethingChanged() {
         tree.refreshTree();
         updateTitle();
+        infoPanel.update();
     }
 }
