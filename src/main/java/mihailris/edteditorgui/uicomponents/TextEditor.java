@@ -5,6 +5,7 @@ import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
 import mihailris.edteditorgui.actions.ActionSetValueGroup;
 import mihailris.edteditorgui.actions.Actions;
+import mihailris.edteditorgui.utils.ImageUtils;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 
@@ -19,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 public class TextEditor {
     private final JPanel panel;
@@ -129,8 +129,9 @@ public class TextEditor {
         panel.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 50)));
 
         toolBar = new JToolBar();
-        ImageIcon icon = new ImageIcon(
-                Objects.requireNonNull(TextEditor.class.getResource("/images/line_nums.png")));
+        Color tint = toolBar.getForeground();
+
+        ImageIcon icon = new ImageIcon(ImageUtils.loadColored("/images/line_nums.png", tint));
 
         Action linesEnumButton = new AbstractAction("123", icon) {
             @Override

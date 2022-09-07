@@ -1,5 +1,8 @@
 package mihailris.edteditorgui.utils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class EditorSwingUtils {
     public static void configTheme(){
         try {
@@ -12,5 +15,21 @@ public class EditorSwingUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void setTheme(String className){
+        try {
+            javax.swing.UIManager.setLookAndFeel(className);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Map<String, String> getAvailableThemes(){
+        Map<String, String> themes = new HashMap<>();
+        for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            themes.put(info.getName(), info.getClassName());
+        }
+        return themes;
     }
 }
