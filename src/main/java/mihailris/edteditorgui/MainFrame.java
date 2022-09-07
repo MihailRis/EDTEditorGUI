@@ -10,7 +10,6 @@ import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
-import mihailris.edtfile.EDTList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -210,27 +209,14 @@ public class MainFrame extends JFrame {
         }
     }
 
-    public Object getSelectedNode(Object root, Object[] path, int index){
-        if (index == path.length)
-            return root;
-        if (root instanceof EDTGroup) {
-            return getSelectedNode(((EDTGroup) root).getObjects().get(path[index].toString()), path, index+1);
-        }
-        if (root instanceof EDTList) {
-            return getSelectedNode(((EDTList) root).getObjects().get(Integer.parseInt(path[index].toString())), path, index+1);
-        }
-        return root;
-    }
-
     public void openNodeContextMenu(MouseEvent e, TreePath path) {
         int row = tree.getClosestRowForLocation(e.getX(), e.getY());
         tree.setSelectionRow(row);
         new TreePopUpMenu(this, path).show(e.getComponent(), e.getX(), e.getY());
     }
 
-    public void selectByPath(TreePath path) {
+    public void onSelected(TreePath path) {
         lastSelectedPath = path;
-        getSelectedNode(context.root, path.getPath(), 1);
         EDTNodeUserData userData = getUserData(path);
         infoPanel.set(userData);
         if (userData.getValue() instanceof String){

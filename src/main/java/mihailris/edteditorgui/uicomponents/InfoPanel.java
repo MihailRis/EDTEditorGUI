@@ -71,7 +71,7 @@ public class InfoPanel {
         }
         else if (value instanceof String){
             common(builder, "string", tag, index);
-            stringInfo(builder, (String)value, editorLines, editorLength);
+            stringInfo(builder, editorLines, editorLength);
         }
         else if (value instanceof byte[]){
             common(builder, "bytes", tag, index);
@@ -140,7 +140,7 @@ public class InfoPanel {
         builder.append("<b>Size:</b> ").append(group.size()).append(" items<br>");
     }
 
-    private void stringInfo(StringBuilder builder, String string, int lines, int length) {
+    private void stringInfo(StringBuilder builder, int lines, int length) {
         builder.append("<b>Lines:</b> ").append(lines).append("<br>");
         builder.append("<b>Length:</b> ").append(length).append("<br>");
     }

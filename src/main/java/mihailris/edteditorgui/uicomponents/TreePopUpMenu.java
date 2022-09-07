@@ -67,7 +67,7 @@ public class TreePopUpMenu extends JPopupMenu {
                         return;
                     }
                     ActionsUtil.actionSetValue(userData, string, frame.context);
-                    frame.selectByPath(path);
+                    frame.onSelected(path);
                 }
             });
             add(convertItem);

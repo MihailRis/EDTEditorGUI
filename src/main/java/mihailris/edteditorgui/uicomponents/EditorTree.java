@@ -57,7 +57,7 @@ public class EditorTree extends JTree {
             TreePath path = treeSelectionEvent.getPath();
             if (path == mainFrame.getLastSelectedPath())
                 return;
-            mainFrame.selectByPath(path);
+            mainFrame.onSelected(path);
         });
     }
 
@@ -71,7 +71,7 @@ public class EditorTree extends JTree {
                 if(selRow != -1) {
                     if(e.getClickCount() == 1) {
                         assert selPath != null;
-                        mainFrame.selectByPath(selPath);
+                        mainFrame.onSelected(selPath);
                         int button = e.getButton();
                         if (button == MouseEvent.BUTTON3) {
                             mainFrame.openNodeContextMenu(e, selPath);
@@ -218,7 +218,7 @@ public class EditorTree extends JTree {
     @Override
     public void setSelectionPath(TreePath treePath) {
         super.setSelectionPath(treePath);
-        mainFrame.selectByPath(treePath);
+        mainFrame.onSelected(treePath);
     }
 
     private void refresh(DefaultMutableTreeNode rootNode, EDTGroup group){
