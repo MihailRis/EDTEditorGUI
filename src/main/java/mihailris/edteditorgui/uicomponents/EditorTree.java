@@ -254,6 +254,10 @@ public class EditorTree extends JTree {
                 refresh(subnode, (EDTItem) subEDT);
             }
             else {
+                if (subnode.getChildCount() > 0) {
+                    subnode.removeAllChildren();
+                    MainFrame.getUserData(subnode).setTag(null);
+                }
                 subUserData.setValue(subEDT);
             }
         }
@@ -304,6 +308,10 @@ public class EditorTree extends JTree {
                 if (subEDT instanceof EDTItem) {
                     refresh(subnode, (EDTItem) subEDT);
                 } else {
+                    if (subnode.getChildCount() > 0) {
+                        subnode.removeAllChildren();
+                        MainFrame.getUserData(subnode).setTag(null);
+                    }
                     subUserData.setValue(subEDT);
                 }
             }

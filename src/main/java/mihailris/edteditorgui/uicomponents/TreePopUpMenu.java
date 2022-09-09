@@ -3,10 +3,7 @@ package mihailris.edteditorgui.uicomponents;
 import mihailris.edteditorgui.actions.*;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
-import mihailris.edtfile.EDTGroup;
-import mihailris.edtfile.EDTItem;
-import mihailris.edtfile.EDTList;
-import mihailris.edtfile.EDTType;
+import mihailris.edtfile.*;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -43,6 +40,56 @@ public class TreePopUpMenu extends JPopupMenu {
             subnodeItem.add(createSubnodeMenuItem(frame, EDTType.BYTES, edtItem, "Bytes"));
         }
 
+        if (value instanceof Boolean){
+            JMenuItem toogleItem = new JMenuItem("Toggle");
+            toogleItem.addActionListener(actionEvent -> {
+                boolean boolValue = (boolean) userData.getValue();
+                ActionsUtil.actionSetValue(userData, !boolValue, frame.context);
+            });
+            add(toogleItem);
+        }
+
+        final EDTItem parent = userData.getParent();
+        if (value instanceof byte[]){
+            convertItem = new JMenuItem("Convert to EDT");
+            convertItem.addActionListener(actionEvent -> {
+                EDTItem item;
+                try {
+                    item = EDT.read((byte[]) value, 0);
+                } catch (Exception e){
+                    e.printStackTrace();
+                    return;
+                }
+                ActionsUtil.actionSetValue(userData, item, frame.context);
+                frame.onSelected(path);
+            });
+            add(convertItem);
+
+            convertItem = new JMenuItem("Decode to String");
+            convertItem.addActionListener(actionEvent -> {
+                String string;
+                try {
+                    string = new String((byte[]) userData.getValue(), StandardCharsets.UTF_8);
+                } catch (Exception e){
+                    e.printStackTrace();
+                    return;
+                }
+                ActionsUtil.actionSetValue(userData, string, frame.context);
+                frame.onSelected(path);
+            });
+            add(convertItem);
+        }
+
+        if (value instanceof EDTItem) {
+            EDTItem edtItem = (EDTItem) value;
+            convertItem = new JMenuItem("Convert to Bytes");
+            convertItem.addActionListener(actionEvent -> {
+                byte[] bytes = EDT.write(edtItem);
+                ActionsUtil.actionSetValue(userData, bytes, frame.context);
+            });
+            add(convertItem);
+        }
+
         renameItem = new JMenuItem("Rename");
         renameItem.addMouseListener(new MouseInputAdapter() {
             @Override
@@ -52,26 +99,6 @@ public class TreePopUpMenu extends JPopupMenu {
             }
         });
         add(renameItem);
-
-        final EDTItem parent = userData.getParent();
-        if (userData.getValue() instanceof byte[]){
-            convertItem = new JMenuItem("Decode to String");
-            convertItem.addMouseListener(new MouseInputAdapter() {
-                @Override
-                public void mousePressed(MouseEvent mouseEvent) {
-                    String string;
-                    try {
-                        string = new String((byte[]) userData.getValue(), StandardCharsets.UTF_8);
-                    } catch (Exception e){
-                        e.printStackTrace();
-                        return;
-                    }
-                    ActionsUtil.actionSetValue(userData, string, frame.context);
-                    frame.onSelected(path);
-                }
-            });
-            add(convertItem);
-        }
 
         if (parent != null) {
             deleteItem = new JMenuItem("Delete");
