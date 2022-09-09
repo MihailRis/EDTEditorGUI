@@ -101,6 +101,17 @@ public class InfoPanel {
         itemTitleLabel.setText(builder.toString());
     }
 
+    private void common(StringBuilder builder, String type, String tag, int index){
+        builder.append("<b>Type:</b> ").append(type).append("<br>");
+        if (tag != null)
+            builder.append("<b>Tag:</b> '").append(tag).append("'<br>");
+        else
+            builder.append("<b>Tag:</b> ").append(String.format(SPAN_FORMAT, "gray", "null")).append("<br>");
+        if (index != -1) {
+            builder.append("<b>Index:</b> '").append(index).append("'<br>");
+        }
+    }
+
     private void intInfo(StringBuilder builder, long value) {
         builder.append("<b>Dec:</b> ").append(value).append("<br>");
         builder.append("<b>Hex:</b> ").append(Long.toHexString(value)).append("<br>");
@@ -118,14 +129,6 @@ public class InfoPanel {
 
     private void doubleInfo(StringBuilder builder, double value) {
         builder.append("<b>Value:</b> ").append(value).append("<br>");
-    }
-
-    private void common(StringBuilder builder, String type, String tag, int index){
-        builder.append("<b>Type:</b> ").append(type).append("<br>");
-        builder.append("<b>Tag:</b> '").append(tag).append("'<br>");
-        if (index != -1) {
-            builder.append("<b>Index:</b> '").append(index).append("'<br>");
-        }
     }
 
     private void empty(StringBuilder builder){

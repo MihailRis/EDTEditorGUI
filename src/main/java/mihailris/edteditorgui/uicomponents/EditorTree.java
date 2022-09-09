@@ -256,7 +256,6 @@ public class EditorTree extends JTree {
             else {
                 if (subnode.getChildCount() > 0) {
                     subnode.removeAllChildren();
-                    MainFrame.getUserData(subnode).setTag(null);
                 }
                 subUserData.setValue(subEDT);
             }
@@ -310,7 +309,6 @@ public class EditorTree extends JTree {
                 } else {
                     if (subnode.getChildCount() > 0) {
                         subnode.removeAllChildren();
-                        MainFrame.getUserData(subnode).setTag(null);
                     }
                     subUserData.setValue(subEDT);
                 }
