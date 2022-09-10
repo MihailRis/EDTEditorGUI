@@ -1,4 +1,4 @@
-package mihailris.edteditorgui.uicomponents;
+package mihailris.edteditorgui.components;
 
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edtfile.EDTGroup;

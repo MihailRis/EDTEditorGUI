@@ -1,6 +1,6 @@
 package mihailris.edteditorgui.utils;
 
-import mihailris.edteditorgui.uicomponents.TextEditor;
+import mihailris.edteditorgui.components.TextEditor;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

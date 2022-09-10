@@ -1,9 +1,10 @@
-package mihailris.edteditorgui.uicomponents;
+package mihailris.edteditorgui.components;
 
 import mihailris.edteditorgui.AppContext;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
 import mihailris.edteditorgui.actions.*;
+import mihailris.edteditorgui.uicomponents.EDTTreeCellRenderer;
 import mihailris.edteditorgui.utils.InputChecker;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;

@@ -2,9 +2,9 @@ package mihailris.edteditorgui;
 
 import mihailris.edteditorgui.actions.ActionOpenEDT;
 import mihailris.edteditorgui.actions.Actions;
-import mihailris.edteditorgui.uicomponents.EditorTree;
-import mihailris.edteditorgui.uicomponents.InfoPanel;
-import mihailris.edteditorgui.uicomponents.TextEditor;
+import mihailris.edteditorgui.components.EditorTree;
+import mihailris.edteditorgui.components.InfoPanel;
+import mihailris.edteditorgui.components.TextEditor;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
 import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edtfile.EDT;

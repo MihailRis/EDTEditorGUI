@@ -1,4 +1,4 @@
-package mihailris.edteditorgui.uicomponents;
+package mihailris.edteditorgui.components;
 
 import mihailris.edteditorgui.AppContext;
 import mihailris.edteditorgui.EDTNodeUserData;
@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 @org.springframework.stereotype.Component
 public class TextEditor {
     private final JPanel panel;
-    private JScrollPane editorScrollPane;
+    private final JScrollPane editorScrollPane;
     private final JTextArea editorTextArea;
     private final JTextArea linesArea;
     private final JToolBar toolBar;
