@@ -48,10 +48,17 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
 
+        tree = new EditorTree(this);
+        textEditor = new TextEditor(this);
+        infoPanel = new InfoPanel();
+        infoPanel.set(null);
+
+        buildUI();
+    }
+
+    private void buildUI(){
         JMenuBar menuBar = new JMenuBar();
         constructMenu(menuBar);
-
-        tree = new EditorTree(this);
 
         JPanel footerPanel = new JPanel();
 
@@ -67,10 +74,6 @@ public class MainFrame extends JFrame {
         footerPanel.add(rebuildTreeButton);
 
         JScrollPane treeScrollPane = new JScrollPane(tree);
-
-        textEditor = new TextEditor(this);
-        infoPanel = new InfoPanel();
-        infoPanel.set(null);
 
         JSplitPane infoSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 infoPanel.getRootComponent(), textEditor.getRootComponent());
@@ -121,6 +124,7 @@ public class MainFrame extends JFrame {
      * The main start up method that launches the application
      */
     public void launch(){
+        onRootChanged();
         updateTitle();
         setVisible(true);
     }

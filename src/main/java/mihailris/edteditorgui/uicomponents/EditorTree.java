@@ -320,6 +320,9 @@ public class EditorTree extends JTree {
         repaint();
     }
 
+    /**
+     * Extended tree node class
+     */
     public class EditorMutableTreeNode extends DefaultMutableTreeNode {
         public EditorMutableTreeNode(Object userData) {
             super(userData);
