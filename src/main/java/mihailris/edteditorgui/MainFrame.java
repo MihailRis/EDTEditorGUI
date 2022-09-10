@@ -37,22 +37,20 @@ public class MainFrame extends JFrame {
     public AppContext context;
     @Autowired
     EditorTree tree;
-
-    public TextEditor textEditor;
+    @Autowired
+    TextEditor textEditor;
+    @Autowired
     public InfoPanel infoPanel;
-    private TreePath lastSelectedPath;
 
+    private TreePath lastSelectedPath;
     public TreePath renaming;
+
     public MainFrame(){
         EditorSwingUtils.configTheme();
 
         setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
-
-        textEditor = new TextEditor(this);
-        infoPanel = new InfoPanel();
-        infoPanel.set(null);
     }
 
     @PostConstruct

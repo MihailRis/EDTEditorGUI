@@ -5,6 +5,7 @@ import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
 import mihailris.edteditorgui.actions.ActionsUtil;
 import mihailris.edteditorgui.utils.ImageUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -18,6 +19,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.charset.StandardCharsets;
 
+@org.springframework.stereotype.Component
 public class TextEditor {
     private final JPanel panel;
     private JScrollPane editorScrollPane;
@@ -31,7 +33,10 @@ public class TextEditor {
     private int prevLines;
     private boolean linesEnumeration = true;
 
-    public TextEditor(MainFrame mainFrame) {
+    @Autowired
+    private MainFrame mainFrame;
+
+    public TextEditor() {
         panel = new JPanel();
         panel.setLayout(new BorderLayout());
         editorTextArea = new JTextArea();

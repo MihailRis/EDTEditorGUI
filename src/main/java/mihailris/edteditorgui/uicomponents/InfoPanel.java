@@ -3,12 +3,14 @@ package mihailris.edteditorgui.uicomponents;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTList;
+import org.springframework.stereotype.Component;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 public class InfoPanel {
     private static final String SPAN_FORMAT = "<span style='color:%s;'>%s</span>";
 
@@ -27,6 +29,7 @@ public class InfoPanel {
         itemTitleLabel.setMargin(new Insets(10, 4, 4, 4));
         itemTitleLabel.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 15));
         infoPanel.add(itemTitleLabel, BorderLayout.CENTER);
+        update();
     }
     public JComponent getRootComponent(){
         return infoPanel;
