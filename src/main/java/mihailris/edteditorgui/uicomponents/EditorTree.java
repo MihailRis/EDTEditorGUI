@@ -151,44 +151,7 @@ public class EditorTree extends JTree {
     private DefaultMutableTreeNode buildNode(EDTItem parentEDT, Object root, String key, int index) {
         EDTNodeUserData edtNodeUserData = new EDTNodeUserData(parentEDT, key, root, index);
         userDataList.add(edtNodeUserData);
-        DefaultMutableTreeNode node = new DefaultMutableTreeNode(edtNodeUserData) {
-            @Override
-            public void setUserObject(Object userObject) {
-                EDTNodeUserData userData = (EDTNodeUserData) this.userObject;
-                boolean renaming = mainFrame.renaming != null;
-                if (parentEDT instanceof EDTGroup) {
-                    if (renaming) {
-                        String from = userData.getTag();
-                        String into = String.valueOf(userObject);
-                        if (!into.equals(from))
-                            Actions.act(new ActionRenameGroupSubItem(
-                                    (EDTGroup) parentEDT,
-                                    from, into
-                            ), mainFrame.context);
-                    }
-                } else if (parentEDT == null) {
-                    if (renaming){
-                        String from = userData.getTag();
-                        String into = String.valueOf(userObject);
-                        if (!into.equals(from))
-                            Actions.act(new ActionRenameRoot(
-                                    (EDTItem) root,
-                                    from, into
-                            ), mainFrame.context);
-                    }
-                }
-                if (!renaming){
-                    Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
-                    if (performed != null){
-                        ActionsUtil.actionSetValue(userData, performed, mainFrame.context);
-                    } else {
-                        System.err.println("invalid input");
-                    }
-                }
-                userData.setEditing(true);
-                mainFrame.renaming = null;
-            }
-        };
+        DefaultMutableTreeNode node = new EditorMutableTreeNode(edtNodeUserData);
         if (root instanceof EDTGroup){
             EDTGroup group = (EDTGroup) root;
             Map<String, Object> objects = group.getObjects();
@@ -355,5 +318,50 @@ public class EditorTree extends JTree {
 
         updateUI();
         repaint();
+    }
+
+    public class EditorMutableTreeNode extends DefaultMutableTreeNode {
+        public EditorMutableTreeNode(Object userData) {
+            super(userData);
+        }
+
+        @Override
+        public void setUserObject(Object userObject) {
+            EDTNodeUserData userData = (EDTNodeUserData) this.userObject;
+            EDTItem parentEDT = userData.getParent();
+            Object root = userData.getValue();
+            boolean renaming = mainFrame.renaming != null;
+            if (parentEDT instanceof EDTGroup) {
+                if (renaming) {
+                    String from = userData.getTag();
+                    String into = String.valueOf(userObject);
+                    if (!into.equals(from))
+                        Actions.act(new ActionRenameGroupSubItem(
+                                (EDTGroup) parentEDT,
+                                from, into
+                        ), mainFrame.context);
+                }
+            } else if (parentEDT == null) {
+                if (renaming){
+                    String from = userData.getTag();
+                    String into = String.valueOf(userObject);
+                    if (!into.equals(from))
+                        Actions.act(new ActionRenameRoot(
+                                (EDTItem) root,
+                                from, into
+                        ), mainFrame.context);
+                }
+            }
+            if (!renaming){
+                Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());
+                if (performed != null){
+                    ActionsUtil.actionSetValue(userData, performed, mainFrame.context);
+                } else {
+                    System.err.println("invalid input");
+                }
+            }
+            userData.setEditing(true);
+            mainFrame.renaming = null;
+        }
     }
 }
