@@ -18,7 +18,7 @@ public class ActionsUtil {
                             performed,
                             userData),
                     context);
-        } else {
+        } else if  (parent instanceof EDTList) {
             Actions.act(
                     new ActionSetValueList(
                             (EDTList) userData.getParent(),
@@ -27,6 +27,8 @@ public class ActionsUtil {
                             performed,
                             userData),
                     context);
+        } else {
+            Actions.act(new ActionChangeRoot((EDTItem) userData.getValue(), (EDTItem) performed), context);
         }
     }
 }

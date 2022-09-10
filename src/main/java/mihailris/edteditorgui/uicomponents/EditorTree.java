@@ -166,6 +166,16 @@ public class EditorTree extends JTree {
                                     from, into
                             ), mainFrame.context);
                     }
+                } else if (parentEDT == null) {
+                    if (renaming){
+                        String from = userData.getTag();
+                        String into = String.valueOf(userObject);
+                        if (!into.equals(from))
+                            Actions.act(new ActionRenameRoot(
+                                    (EDTItem) root,
+                                    from, into
+                            ), mainFrame.context);
+                    }
                 }
                 if (!renaming){
                     Object performed = InputChecker.checkAndParse(String.valueOf(userObject), userData.getValue().getClass());

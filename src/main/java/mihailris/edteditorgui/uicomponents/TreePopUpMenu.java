@@ -80,7 +80,7 @@ public class TreePopUpMenu extends JPopupMenu {
             add(convertItem);
         }
 
-        if (value instanceof EDTItem) {
+        if (value instanceof EDTItem && parent != null) {
             EDTItem edtItem = (EDTItem) value;
             convertItem = new JMenuItem("Convert to Bytes");
             convertItem.addActionListener(actionEvent -> {
