@@ -8,23 +8,32 @@ import mihailris.edteditorgui.utils.InputChecker;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.*;
 import java.awt.event.*;
 import java.util.*;
 
+@Component
 public class EditorTree extends JTree {
     public JTextField editorField;
     TreeCellEditor treeCellEditor;
+
+    @Autowired
     private final MainFrame mainFrame;
+
     final List<EDTNodeUserData> userDataList = new ArrayList<>();
     public final Map<EDTItem, Boolean> expansions = new HashMap<>();
 
-    public EditorTree(MainFrame mainFrame){
+    public EditorTree(MainFrame frame){
         super();
-        this.mainFrame = mainFrame;
+        this.mainFrame = frame;
         setFocusCycleRoot(true);
         editorField = new JTextField(10);
         treeCellEditor = new DefaultCellEditor(editorField);

@@ -13,6 +13,7 @@ import mihailris.edtfile.EDTItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -34,8 +35,9 @@ import java.util.List;
 public class MainFrame extends JFrame {
     @Autowired
     public AppContext context;
+    @Autowired
+    EditorTree tree;
 
-    final EditorTree tree;
     public TextEditor textEditor;
     public InfoPanel infoPanel;
     private TreePath lastSelectedPath;
@@ -48,14 +50,12 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
 
-        tree = new EditorTree(this);
         textEditor = new TextEditor(this);
         infoPanel = new InfoPanel();
         infoPanel.set(null);
-
-        buildUI();
     }
 
+    @PostConstruct
     private void buildUI(){
         JMenuBar menuBar = new JMenuBar();
         constructMenu(menuBar);
