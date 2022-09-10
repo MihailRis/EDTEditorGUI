@@ -40,7 +40,7 @@ public class MainFrame extends JFrame {
     @Autowired
     TextEditor textEditor;
     @Autowired
-    public InfoPanel infoPanel;
+    InfoPanel infoPanel;
 
     private TreePath lastSelectedPath;
     public TreePath renaming;

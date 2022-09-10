@@ -35,6 +35,8 @@ public class TextEditor {
 
     @Autowired
     private MainFrame mainFrame;
+    @Autowired
+    private InfoPanel infoPanel;
 
     public TextEditor() {
         panel = new JPanel();
@@ -63,7 +65,7 @@ public class TextEditor {
         editorTextArea.getDocument().addDocumentListener(new DocumentListener() {
             public String getText() {
                 int actualLines = editorTextArea.getLineCount();
-                mainFrame.infoPanel.update(actualLines, editorTextArea.getText().length());
+                infoPanel.update(actualLines, editorTextArea.getText().length());
                 if (prevLines != actualLines) {
                     int caretPosition = editorTextArea.getDocument().getLength();
                     String separator = System.getProperty("line.separator");
