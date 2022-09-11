@@ -8,6 +8,7 @@ import mihailris.edteditorgui.components.TextEditor;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
 import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edtfile.EDT;
+import mihailris.edtfile.EDTConvert;
 import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -179,10 +181,19 @@ public class MainFrame extends JFrame {
         JMenuItem m14 = new JMenuItem("Save as");
         m14.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
         m14.addActionListener(actionEvent -> saveEDTToFile(null));
+
+        JMenuItem m15 = new JMenuItem("Export JSON");
+        m15.addActionListener(actionEvent -> exportJson());
+
+        JMenuItem m16 = new JMenuItem("Export YAML");
+        m16.addActionListener(actionEvent -> exportYaml());
+
         m1.add(m11);
         m1.add(m12);
         m1.add(m13);
         m1.add(m14);
+        m1.add(m15);
+        m1.add(m16);
     }
 
     /**
@@ -190,16 +201,11 @@ public class MainFrame extends JFrame {
      * @param file file where to write
      */
     private void saveEDTToFile(File file) {
-        textEditor.apply(context);
-        if (file == null){
-            FileDialog fileChooser = new FileDialog(this);
-            fileChooser.setMode(FileDialog.SAVE);
-            fileChooser.setVisible(true);
-            String directory = fileChooser.getDirectory();
-            String filename = fileChooser.getFile();
-            if (directory == null || filename == null)
+        prepareForSave();
+        if (file == null) {
+            file = chooseFile();
+            if (file == null)
                 return;
-            file = new File(directory, filename);
         }
         try {
             Files.write(file.toPath(), EDT.write(context.root));
@@ -209,6 +215,51 @@ public class MainFrame extends JFrame {
         } catch (IOException e){
             JOptionPane.showMessageDialog(this, e);
         }
+    }
+
+    private File chooseFile(){
+        FileDialog fileChooser = new FileDialog(this);
+        fileChooser.setMode(FileDialog.SAVE);
+        fileChooser.setVisible(true);
+        String directory = fileChooser.getDirectory();
+        String filename = fileChooser.getFile();
+        if (directory == null || filename == null)
+            return null;
+        return new File(directory, filename);
+    }
+
+    /**
+     * Export root item to JSON format and save to the file
+     */
+    private void exportJson() {
+        prepareForSave();
+        File file = chooseFile();
+        if (file == null)
+            return;
+        try {
+            Files.write(file.toPath(), EDTConvert.toJson(context.root).getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e){
+            JOptionPane.showMessageDialog(this, e);
+        }
+    }
+
+    /**
+     * Export root item to YAML format and save to the file
+     */
+    private void exportYaml() {
+        prepareForSave();
+        File file = chooseFile();
+        if (file == null)
+            return;
+        try {
+            Files.write(file.toPath(), EDTConvert.toYaml(context.root).getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e){
+            JOptionPane.showMessageDialog(this, e);
+        }
+    }
+
+    public void prepareForSave(){
+        textEditor.apply(context);
     }
 
     public void openNodeContextMenu(MouseEvent e, TreePath path) {
