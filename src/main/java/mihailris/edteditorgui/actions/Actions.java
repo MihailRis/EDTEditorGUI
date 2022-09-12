@@ -15,27 +15,22 @@ public class Actions {
         history.add(action);
         pointer++;
         action.action(context);
-        System.out.println("-- le action "+action);
         context.mainFrame.onSomethingChanged();
     }
 
     public static void undo(AppContext context) {
-        System.out.println("Actions.undo");
         if (pointer <= 0)
             return;
         pointer--;
         EditorAction action = history.get(pointer);
-        System.out.println("-- undo action "+action);
         action.revert(context);
         context.mainFrame.onSomethingChanged();
     }
 
     public static void redo(AppContext context) {
-        System.out.println("Actions.redo");
         if (pointer == history.size())
             return;
         EditorAction action = history.get(pointer++);
-        System.out.println("-- redo action "+action);
         action.action(context);
         context.mainFrame.onSomethingChanged();
     }

@@ -37,7 +37,19 @@ public class EditorTree extends JTree {
         this.mainFrame = frame;
         setFocusCycleRoot(true);
         editorField = new JTextField(10);
-        treeCellEditor = new DefaultCellEditor(editorField);
+        treeCellEditor = new DefaultCellEditor(editorField){
+            @Override
+            public boolean isCellEditable(EventObject eventObject) {
+                TreePath selPath = getSelectionPath();
+                if(selPath != null) {
+                    EDTNodeUserData userData = MainFrame.getUserData(selPath);
+                    if (userData.getValue() instanceof EDTItem){
+                        return false;
+                    }
+                }
+                return super.isCellEditable(eventObject);
+            }
+        };
         treeCellEditor.addCellEditorListener(new CellEditorListener() {
             @Override
             public void editingStopped(ChangeEvent changeEvent) {

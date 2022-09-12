@@ -111,7 +111,7 @@ public class InfoPanel {
         else
             builder.append("<b>Tag:</b> ").append(String.format(SPAN_FORMAT, "gray", "null")).append("<br>");
         if (index != -1) {
-            builder.append("<b>Index:</b> '").append(index).append("'<br>");
+            builder.append("<b>Index:</b> ").append(index).append("<br>");
         }
     }
 

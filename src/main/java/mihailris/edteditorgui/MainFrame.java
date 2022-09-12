@@ -50,8 +50,6 @@ public class MainFrame extends JFrame {
     public TreePath renaming;
 
     public MainFrame(){
-        EditorSwingUtils.configTheme();
-
         setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
