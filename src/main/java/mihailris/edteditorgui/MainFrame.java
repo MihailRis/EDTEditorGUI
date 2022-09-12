@@ -325,6 +325,15 @@ public class MainFrame extends JFrame {
      */
     public void onRootChanged() {
         tree.onRootChanged();
+        textEditor.close();
+
+        TreePath selected = tree.getSelectionPath();
+        if (selected != null){
+            onSelected(selected);
+        } else {
+            infoPanel.set(null);
+            infoPanel.update();
+        }
     }
 
     /**
