@@ -23,6 +23,7 @@ import java.util.*;
 
 @Component
 public class EditorTree extends JTree {
+    public static final int MAX_SHORT_EDITING = 80;
     public JTextField editorField;
     TreeCellEditor treeCellEditor;
 
@@ -43,14 +44,36 @@ public class EditorTree extends JTree {
                 TreePath selPath = getSelectionPath();
                 if(selPath != null) {
                     EDTNodeUserData userData = MainFrame.getUserData(selPath);
-                    if (userData.getValue() instanceof EDTItem){
+                    Object value = userData.getValue();
+                    if (value instanceof EDTItem) {
                         return false;
+                    }
+                    else if (value instanceof String) {
+                        return ((String) value).length() < MAX_SHORT_EDITING;
+                    }
+                    else if (value instanceof byte[]) {
+                        return ((byte[]) value).length < MAX_SHORT_EDITING;
                     }
                 }
                 return super.isCellEditable(eventObject);
             }
         };
-        treeCellEditor.addCellEditorListener(new CellEditorListener() {
+        treeCellEditor.addCellEditorListener(createCellEditorListener());
+        setEditable(true);
+        setCellEditor(treeCellEditor);
+        addMouseListener(createMouseListener());
+        addTreeExpansionListener(createTreeExpansionListener());
+        addKeyListener(createTreeKeyListener());
+        addTreeSelectionListener(treeSelectionEvent -> {
+            TreePath path = treeSelectionEvent.getPath();
+            if (path == mainFrame.getLastSelectedPath())
+                return;
+            mainFrame.onSelected(path);
+        });
+    }
+
+    private CellEditorListener createCellEditorListener(){
+        return new CellEditorListener() {
             @Override
             public void editingStopped(ChangeEvent changeEvent) {
                 cancelEdit();
@@ -69,18 +92,7 @@ public class EditorTree extends JTree {
                     mainFrame.renaming = null;
                 }
             }
-        });
-        setEditable(true);
-        setCellEditor(treeCellEditor);
-        addMouseListener(createMouseListener());
-        addTreeExpansionListener(createTreeExpansionListener());
-        addKeyListener(createTreeKeyListener());
-        addTreeSelectionListener(treeSelectionEvent -> {
-            TreePath path = treeSelectionEvent.getPath();
-            if (path == mainFrame.getLastSelectedPath())
-                return;
-            mainFrame.onSelected(path);
-        });
+        };
     }
 
     private MouseListener createMouseListener(){
@@ -170,6 +182,13 @@ public class EditorTree extends JTree {
         }
     }
 
+    /**
+     * @param parentEDT EDTItem where handled item stored
+     * @param root item value
+     * @param key item tag (nullable in lists)
+     * @param index item index if parent is list else -1
+     * @return built tree node
+     */
     private DefaultMutableTreeNode buildNode(EDTItem parentEDT, Object root, String key, int index) {
         EDTNodeUserData edtNodeUserData = new EDTNodeUserData(parentEDT, key, root, index);
         userDataList.add(edtNodeUserData);
