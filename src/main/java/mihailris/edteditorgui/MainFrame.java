@@ -158,16 +158,12 @@ public class MainFrame extends JFrame {
         JMenuItem m12 = new JMenuItem("Open");
         m12.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
         m12.addActionListener(actionEvent -> {
-            FileDialog fileChooser = new FileDialog(this);
-            fileChooser.setVisible(true);
-            String directory = fileChooser.getDirectory();
-            String filename = fileChooser.getFile();
-            if (directory == null || filename == null)
+            File file = chooseOpenFile();
+            if (file == null)
                 return;
-            File file = new File(directory, filename);
             try {
                 byte[] bytes = Files.readAllBytes(file.toPath());
-                EDTItem edtItem = EDT.read(bytes);
+                EDTItem edtItem = EDT.read(bytes, 0);
                 context.setLastFile(file);
                 Actions.act(new ActionOpenEDT(context.root, edtItem), context);
             } catch (IOException e) {
@@ -182,11 +178,27 @@ public class MainFrame extends JFrame {
         m14.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
         m14.addActionListener(actionEvent -> saveEDTToFile(null));
 
-        JMenuItem m15 = new JMenuItem("Export JSON");
-        m15.addActionListener(actionEvent -> exportJson());
+        JMenuItem m15 = new JMenuItem("Import EDT2");
+        m15.addActionListener(actionEvent -> {
+            File file = chooseOpenFile();
+            if (file == null)
+                return;
+            try {
+                byte[] bytes = Files.readAllBytes(file.toPath());
+                EDTItem edtItem = EDT.readEDT2(bytes);
+                // don't remember file to prevent random overwriting
+                context.setLastFile(null);
+                Actions.act(new ActionOpenEDT(context.root, edtItem), context);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
-        JMenuItem m16 = new JMenuItem("Export YAML");
-        m16.addActionListener(actionEvent -> exportYaml());
+        JMenuItem m16 = new JMenuItem("Export JSON");
+        m16.addActionListener(actionEvent -> exportJson());
+
+        JMenuItem m17 = new JMenuItem("Export YAML");
+        m17.addActionListener(actionEvent -> exportYaml());
 
         m1.add(m11);
         m1.add(m12);
@@ -194,6 +206,7 @@ public class MainFrame extends JFrame {
         m1.add(m14);
         m1.add(m15);
         m1.add(m16);
+        m1.add(m17);
     }
 
     /**
@@ -203,7 +216,7 @@ public class MainFrame extends JFrame {
     private void saveEDTToFile(File file) {
         prepareForSave();
         if (file == null) {
-            file = chooseFile();
+            file = chooseSaveFile();
             if (file == null)
                 return;
         }
@@ -217,7 +230,17 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private File chooseFile(){
+    private File chooseOpenFile(){
+        FileDialog fileChooser = new FileDialog(this);
+        fileChooser.setVisible(true);
+        String directory = fileChooser.getDirectory();
+        String filename = fileChooser.getFile();
+        if (directory == null || filename == null)
+            return null;
+        return new File(directory, filename);
+    }
+
+    private File chooseSaveFile(){
         FileDialog fileChooser = new FileDialog(this);
         fileChooser.setMode(FileDialog.SAVE);
         fileChooser.setVisible(true);
@@ -233,7 +256,7 @@ public class MainFrame extends JFrame {
      */
     private void exportJson() {
         prepareForSave();
-        File file = chooseFile();
+        File file = chooseSaveFile();
         if (file == null)
             return;
         try {
@@ -248,7 +271,7 @@ public class MainFrame extends JFrame {
      */
     private void exportYaml() {
         prepareForSave();
-        File file = chooseFile();
+        File file = chooseSaveFile();
         if (file == null)
             return;
         try {
