@@ -29,6 +29,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
@@ -131,23 +133,19 @@ public class MainFrame extends JFrame {
 
     /**
      * Create menu items for the application
-     * @param mb target MenuBar
+     * @param menuBar target MenuBar
      */
-    private void constructMenu(JMenuBar mb){
+    private void constructMenu(JMenuBar menuBar){
+        constructFileMenu(menuBar);
+        constructEditMenu(menuBar);
+        constructHelpMenu(menuBar);
+    }
+
+    private void constructFileMenu(JMenuBar menuBar) {
         JMenu m1 = new JMenu("File");
         m1.setMnemonic('f');
-        JMenu m2 = new JMenu("Edit");
-        m2.setMnemonic('e');
-        mb.add(m1);
-        mb.add(m2);
-        JMenuItem m21 = new JMenuItem("Undo");
-        JMenuItem m22 = new JMenuItem("Redo");
-        m21.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK));
-        m22.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.ALT_DOWN_MASK));
-        m21.addActionListener(actionEvent -> Actions.undo(context));
-        m22.addActionListener(actionEvent -> Actions.redo(context));
-        m2.add(m21);
-        m2.add(m22);
+        menuBar.add(m1);
+
         JMenuItem m11 = new JMenuItem("New");
         m11.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
         m11.addActionListener(actionEvent -> {
@@ -207,6 +205,47 @@ public class MainFrame extends JFrame {
         m1.add(m15);
         m1.add(m16);
         m1.add(m17);
+    }
+
+    private void constructEditMenu(JMenuBar menuBar) {
+        JMenu m2 = new JMenu("Edit");
+        m2.setMnemonic('e');
+        menuBar.add(m2);
+
+        JMenuItem m21 = new JMenuItem("Undo");
+        JMenuItem m22 = new JMenuItem("Redo");
+        m21.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK));
+        m22.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.ALT_DOWN_MASK));
+        m21.addActionListener(actionEvent -> Actions.undo(context));
+        m22.addActionListener(actionEvent -> Actions.redo(context));
+        m2.add(m21);
+        m2.add(m22);
+    }
+
+    private void constructHelpMenu(JMenuBar menuBar) {
+        JMenu m3 = new JMenu("Help");
+        m3.setMnemonic('h');
+        menuBar.add(m3);
+
+        JMenuItem m31 = new JMenuItem("EDT3 specification");
+        m31.addActionListener(actionEvent -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://github.com/MihailRis/EDT2/"));
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
+        });
+        m3.add(m31);
+
+        JMenuItem m32 = new JMenuItem("About");
+        m32.addActionListener(actionEvent -> {
+            String builder = "<html>" + "Editor developed for EDT3 format<br>" +
+                    "Version: " + EDTEditorGUIApp.versionString + "<br>" +
+                    "EDT3EditorGUI © MihailRis 2022" +
+                    "</html>";
+            JOptionPane.showMessageDialog(this, builder, "About EDTEditorGUI", JOptionPane.INFORMATION_MESSAGE);
+        });
+        m3.add(m32);
     }
 
     /**
