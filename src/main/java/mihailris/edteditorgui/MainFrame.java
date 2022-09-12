@@ -6,7 +6,6 @@ import mihailris.edteditorgui.components.EditorTree;
 import mihailris.edteditorgui.components.InfoPanel;
 import mihailris.edteditorgui.components.TextEditor;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
-import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTConvert;
 import mihailris.edtfile.EDTGroup;
@@ -27,6 +26,8 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -53,6 +54,21 @@ public class MainFrame extends JFrame {
         setTitle(EDTEditorGUIApp.title+" "+EDTEditorGUIApp.versionString);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent windowEvent) {
+                super.windowClosing(windowEvent);
+                if (!Actions.isAllSaved()) {
+                    try {
+                        File file = File.createTempFile("unsaved", ".edt");
+                        Files.write(file.toPath(), EDT.write(context.root));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     @PostConstruct
@@ -151,6 +167,8 @@ public class MainFrame extends JFrame {
             Actions.act(new ActionOpenEDT(context.root, newItem), context);
             context.setLastFile(null);
         });
+        m1.add(m11);
+
         JMenuItem m12 = new JMenuItem("Open");
         m12.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
         m12.addActionListener(actionEvent -> {
@@ -166,13 +184,17 @@ public class MainFrame extends JFrame {
                 e.printStackTrace();
             }
         });
+        m1.add(m12);
+
         JMenuItem m13 = new JMenuItem("Save");
         m13.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
         m13.addActionListener(actionEvent -> saveEDTToFile(context.lastFile));
+        m1.add(m13);
 
         JMenuItem m14 = new JMenuItem("Save as");
         m14.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
         m14.addActionListener(actionEvent -> saveEDTToFile(null));
+        m1.add(m14);
 
         JMenuItem m15 = new JMenuItem("Import EDT2");
         m15.addActionListener(actionEvent -> {
@@ -189,19 +211,14 @@ public class MainFrame extends JFrame {
                 e.printStackTrace();
             }
         });
+        m1.add(m15);
 
         JMenuItem m16 = new JMenuItem("Export JSON");
         m16.addActionListener(actionEvent -> exportJson());
+        m1.add(m16);
 
         JMenuItem m17 = new JMenuItem("Export YAML");
         m17.addActionListener(actionEvent -> exportYaml());
-
-        m1.add(m11);
-        m1.add(m12);
-        m1.add(m13);
-        m1.add(m14);
-        m1.add(m15);
-        m1.add(m16);
         m1.add(m17);
     }
 
@@ -235,15 +252,25 @@ public class MainFrame extends JFrame {
         });
         m3.add(m31);
 
-        JMenuItem m32 = new JMenuItem("About");
+        JMenuItem m32 = new JMenuItem("GitHub repository");
         m32.addActionListener(actionEvent -> {
+            try {
+                Desktop.getDesktop().browse(new URI("https://github.com/MihailRis/EDT2/"));
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
+        });
+        m3.add(m32);
+
+        JMenuItem m33 = new JMenuItem("About");
+        m33.addActionListener(actionEvent -> {
             String builder = "<html>" + "Editor developed for EDT3 format<br>" +
                     "Version: " + EDTEditorGUIApp.versionString + "<br>" +
                     "EDT3EditorGUI © MihailRis 2022" +
                     "</html>";
             JOptionPane.showMessageDialog(this, builder, "About EDTEditorGUI", JOptionPane.INFORMATION_MESSAGE);
         });
-        m3.add(m32);
+        m3.add(m33);
     }
 
     /**
