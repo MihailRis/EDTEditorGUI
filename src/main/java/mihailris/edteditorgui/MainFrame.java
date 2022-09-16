@@ -6,6 +6,7 @@ import mihailris.edteditorgui.components.EditorTree;
 import mihailris.edteditorgui.components.InfoPanel;
 import mihailris.edteditorgui.components.TextEditor;
 import mihailris.edteditorgui.uicomponents.TreePopUpMenu;
+import mihailris.edteditorgui.utils.DialogsUtil;
 import mihailris.edtfile.EDT;
 import mihailris.edtfile.EDTConvert;
 import mihailris.edtfile.EDTGroup;
@@ -172,7 +173,7 @@ public class MainFrame extends JFrame {
         JMenuItem m12 = new JMenuItem("Open");
         m12.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
         m12.addActionListener(actionEvent -> {
-            File file = chooseOpenFile();
+            File file = DialogsUtil.chooseOpenFile(this);
             if (file == null)
                 return;
             try {
@@ -198,7 +199,7 @@ public class MainFrame extends JFrame {
 
         JMenuItem m15 = new JMenuItem("Import EDT2");
         m15.addActionListener(actionEvent -> {
-            File file = chooseOpenFile();
+            File file = DialogsUtil.chooseOpenFile(this);
             if (file == null)
                 return;
             try {
@@ -280,7 +281,7 @@ public class MainFrame extends JFrame {
     private void saveEDTToFile(File file) {
         prepareForSave();
         if (file == null) {
-            file = chooseSaveFile();
+            file = DialogsUtil.chooseSaveFile(this);
             if (file == null)
                 return;
         }
@@ -294,33 +295,14 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private File chooseOpenFile(){
-        FileDialog fileChooser = new FileDialog(this);
-        fileChooser.setVisible(true);
-        String directory = fileChooser.getDirectory();
-        String filename = fileChooser.getFile();
-        if (directory == null || filename == null)
-            return null;
-        return new File(directory, filename);
-    }
 
-    private File chooseSaveFile(){
-        FileDialog fileChooser = new FileDialog(this);
-        fileChooser.setMode(FileDialog.SAVE);
-        fileChooser.setVisible(true);
-        String directory = fileChooser.getDirectory();
-        String filename = fileChooser.getFile();
-        if (directory == null || filename == null)
-            return null;
-        return new File(directory, filename);
-    }
 
     /**
      * Export root item to JSON format and save to the file
      */
     private void exportJson() {
         prepareForSave();
-        File file = chooseSaveFile();
+        File file = DialogsUtil.chooseSaveFile(this);
         if (file == null)
             return;
         try {
@@ -335,7 +317,7 @@ public class MainFrame extends JFrame {
      */
     private void exportYaml() {
         prepareForSave();
-        File file = chooseSaveFile();
+        File file = DialogsUtil.chooseSaveFile(this);
         if (file == null)
             return;
         try {
