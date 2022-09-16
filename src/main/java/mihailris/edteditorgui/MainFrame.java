@@ -295,8 +295,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-
-
     /**
      * Export root item to JSON format and save to the file
      */
@@ -331,10 +329,10 @@ public class MainFrame extends JFrame {
         textEditor.apply(context);
     }
 
-    public void openNodeContextMenu(MouseEvent e, TreePath path) {
-        int row = tree.getClosestRowForLocation(e.getX(), e.getY());
+    public void openNodeContextMenu(java.awt.Component component, int x, int y, TreePath path) {
+        int row = tree.getClosestRowForLocation(x, y);
         tree.setSelectionRow(row);
-        new TreePopUpMenu(this, path).show(e.getComponent(), e.getX(), e.getY());
+        new TreePopUpMenu(this, path).show(component, x, y);
     }
 
     public void onSelected(TreePath path) {

@@ -70,6 +70,13 @@ public class EditorTree extends JTree {
                 return;
             mainFrame.onSelected(path);
         });
+        KeyStroke stroke = KeyStroke.getKeyStroke("control E");
+        registerKeyboardAction(actionEvent -> {
+            TreePath path = getSelectionPath();
+            if (path == null)
+                return;
+            mainFrame.openNodeContextMenu(this, getMousePosition().x, getMousePosition().y, path);
+        }, stroke, WHEN_FOCUSED);
     }
 
     private CellEditorListener createCellEditorListener(){
@@ -108,7 +115,7 @@ public class EditorTree extends JTree {
                         mainFrame.onSelected(selPath);
                         int button = e.getButton();
                         if (button == MouseEvent.BUTTON3) {
-                            mainFrame.openNodeContextMenu(e, selPath);
+                            mainFrame.openNodeContextMenu(e.getComponent(), e.getX(), e.getY(), selPath);
                         }
                     }
                 }
