@@ -1,8 +1,11 @@
 package mihailris.edteditorgui.uicomponents;
 
-import mihailris.edteditorgui.actions.*;
 import mihailris.edteditorgui.EDTNodeUserData;
 import mihailris.edteditorgui.MainFrame;
+import mihailris.edteditorgui.actions.ActionCreateRemoveGroup;
+import mihailris.edteditorgui.actions.ActionCreateRemoveList;
+import mihailris.edteditorgui.actions.Actions;
+import mihailris.edteditorgui.actions.ActionsUtil;
 import mihailris.edtfile.*;
 
 import javax.swing.*;
@@ -23,7 +26,7 @@ public class TreePopUpMenu extends JPopupMenu {
     public TreePopUpMenu(MainFrame frame, TreePath path){
         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
         EDTNodeUserData userData = (EDTNodeUserData) treeNode.getUserObject();
-        setFocusable(false);
+        //setFocusable(false);
         Object value = userData.getValue();
         if (value instanceof EDTItem) {
             EDTItem edtItem = (EDTItem) value;

@@ -12,14 +12,17 @@ import mihailris.edtfile.EDTList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.util.List;
 
 @Component
 public class EditorTree extends JTree {
@@ -28,14 +31,13 @@ public class EditorTree extends JTree {
     TreeCellEditor treeCellEditor;
 
     @Autowired
-    private final MainFrame mainFrame;
+    private MainFrame mainFrame;
 
     final List<EDTNodeUserData> userDataList = new ArrayList<>();
     public final Map<EDTItem, Boolean> expansions = new HashMap<>();
 
-    public EditorTree(MainFrame frame){
+    public EditorTree(){
         super();
-        this.mainFrame = frame;
         setFocusCycleRoot(true);
         editorField = new JTextField(10);
         treeCellEditor = new DefaultCellEditor(editorField){
@@ -70,12 +72,22 @@ public class EditorTree extends JTree {
                 return;
             mainFrame.onSelected(path);
         });
+    }
+
+    @PostConstruct
+    private void postConstruct(){
+        assert (mainFrame != null);
         KeyStroke stroke = KeyStroke.getKeyStroke("control E");
         registerKeyboardAction(actionEvent -> {
             TreePath path = getSelectionPath();
             if (path == null)
                 return;
-            mainFrame.openNodeContextMenu(this, getMousePosition().x, getMousePosition().y, path);
+            Point point = getMousePosition();
+            if (point != null) {
+                mainFrame.openNodeContextMenu(this, point.x, point.y, path);
+            } else {
+                mainFrame.openNodeContextMenu(this, 100, 100, path);
+            }
         }, stroke, WHEN_FOCUSED);
     }
 

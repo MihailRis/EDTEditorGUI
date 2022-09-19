@@ -144,6 +144,8 @@ public class MainFrame extends JFrame {
         onRootChanged();
         updateTitle();
         setVisible(true);
+        tree.grabFocus();
+        tree.setSelectionPath(tree.getPathForRow(0));
     }
 
     /**
@@ -332,7 +334,9 @@ public class MainFrame extends JFrame {
     public void openNodeContextMenu(java.awt.Component component, int x, int y, TreePath path) {
         int row = tree.getClosestRowForLocation(x, y);
         tree.setSelectionRow(row);
-        new TreePopUpMenu(this, path).show(component, x, y);
+        TreePopUpMenu popUpMenu = new TreePopUpMenu(this, path);
+        popUpMenu.show(component, x, y);
+        popUpMenu.grabFocus();
     }
 
     public void onSelected(TreePath path) {
