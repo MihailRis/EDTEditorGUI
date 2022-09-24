@@ -248,7 +248,7 @@ public class MainFrame extends JFrame {
         JMenuItem m31 = new JMenuItem("EDT3 specification");
         m31.addActionListener(actionEvent -> {
             try {
-                Desktop.getDesktop().browse(new URI("https://github.com/MihailRis/EDT2/"));
+                Desktop.getDesktop().browse(new URI("https://github.com/MihailRis/EDT3/#table-of-contents"));
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
@@ -258,7 +258,7 @@ public class MainFrame extends JFrame {
         JMenuItem m32 = new JMenuItem("GitHub repository");
         m32.addActionListener(actionEvent -> {
             try {
-                Desktop.getDesktop().browse(new URI("https://github.com/MihailRis/EDT2/"));
+                Desktop.getDesktop().browse(new URI("https://github.com/MihailRis/EDT3/"));
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
