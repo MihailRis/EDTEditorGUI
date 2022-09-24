@@ -267,10 +267,9 @@ public class MainFrame extends JFrame {
 
         JMenuItem m33 = new JMenuItem("About");
         m33.addActionListener(actionEvent -> {
-            String builder = "<html>" + "Editor developed for EDT3 format<br>" +
-                    "Version: " + EDTEditorGUIApp.versionString + "<br>" +
-                    "EDT3EditorGUI © MihailRis 2022" +
-                    "</html>";
+            String builder = "<html>Editor developed for EDT3 format<br>" +
+                    "Version: " + EDTEditorGUIApp.versionString +
+                    "<br>EDT3EditorGUI © MihailRis 2022</html>";
             JOptionPane.showMessageDialog(this, builder, "About EDTEditorGUI", JOptionPane.INFORMATION_MESSAGE);
         });
         m3.add(m33);

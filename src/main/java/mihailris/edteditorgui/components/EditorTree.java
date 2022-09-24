@@ -21,8 +21,9 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import java.util.List;
+import java.util.Queue;
+import java.util.*;
 
 @Component
 public class EditorTree extends JTree {
@@ -43,7 +44,8 @@ public class EditorTree extends JTree {
         treeCellEditor = new DefaultCellEditor(editorField){
             @Override
             public boolean isCellEditable(EventObject eventObject) {
-                TreePath selPath = getSelectionPath();
+                MouseEvent event = (MouseEvent) eventObject;
+                TreePath selPath = getPathForLocation(event.getX(), event.getY());
                 if(selPath != null) {
                     EDTNodeUserData userData = MainFrame.getUserData(selPath);
                     Object value = userData.getValue();
