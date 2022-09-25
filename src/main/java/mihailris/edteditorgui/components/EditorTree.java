@@ -46,16 +46,14 @@ public class EditorTree extends JTree {
             public boolean isCellEditable(EventObject eventObject) {
                 MouseEvent event = (MouseEvent) eventObject;
                 TreePath selPath = getPathForLocation(event.getX(), event.getY());
-                if(selPath != null) {
+                if (selPath != null) {
                     EDTNodeUserData userData = MainFrame.getUserData(selPath);
                     Object value = userData.getValue();
                     if (value instanceof EDTItem) {
                         return false;
-                    }
-                    else if (value instanceof String) {
+                    } else if (value instanceof String) {
                         return ((String) value).length() < MAX_SHORT_EDITING;
-                    }
-                    else if (value instanceof byte[]) {
+                    } else if (value instanceof byte[]) {
                         return ((byte[]) value).length < MAX_SHORT_EDITING;
                     }
                 }
@@ -123,8 +121,8 @@ public class EditorTree extends JTree {
                 super.mousePressed(e);
                 int selRow = getRowForLocation(e.getX(), e.getY());
                 TreePath selPath = getPathForLocation(e.getX(), e.getY());
-                if(selRow != -1) {
-                    if(e.getClickCount() == 1) {
+                if (selRow != -1) {
+                    if (e.getClickCount() == 1) {
                         assert selPath != null;
                         mainFrame.onSelected(selPath);
                         int button = e.getButton();
@@ -162,7 +160,7 @@ public class EditorTree extends JTree {
                 super.keyPressed(keyEvent);
                 if (keyEvent.getKeyCode() == KeyEvent.VK_DELETE){
                     TreePath selPath = getSelectionPath();
-                    if(selPath != null) {
+                    if (selPath != null) {
                         EDTNodeUserData userData = MainFrame.getUserData(selPath);
                         EDTItem parent = userData.getParent();
                         if (parent instanceof EDTGroup) {
@@ -190,7 +188,7 @@ public class EditorTree extends JTree {
     private void refresh(DefaultMutableTreeNode rootNode, EDTItem root) {
         EDTNodeUserData userData = (EDTNodeUserData) rootNode.getUserObject();
         userData.setTag(root.getTag());
-        if (expansions.get(root) != null){
+        if (expansions.get(root) != null) {
             expandPath(new TreePath(rootNode.getPath()));
         }
         if (root instanceof EDTGroup) {
@@ -214,7 +212,7 @@ public class EditorTree extends JTree {
         EDTNodeUserData edtNodeUserData = new EDTNodeUserData(parentEDT, key, root, index);
         userDataList.add(edtNodeUserData);
         DefaultMutableTreeNode node = new EditorMutableTreeNode(edtNodeUserData);
-        if (root instanceof EDTGroup){
+        if (root instanceof EDTGroup) {
             EDTGroup group = (EDTGroup) root;
             Map<String, Object> objects = group.getObjects();
             objects.keySet().stream().sorted().forEach(k -> node.add(buildNode(group, objects.get(k), k, -1)));
@@ -225,7 +223,7 @@ public class EditorTree extends JTree {
             for (int i = 0; i < objects.size(); i++) {
                 String k = null;
                 Object object = objects.get(i);
-                if (object instanceof EDTItem){
+                if (object instanceof EDTItem) {
                     k = ((EDTItem) object).getTag();
                 }
                 node.add(buildNode(list, object, k, i));
@@ -235,7 +233,7 @@ public class EditorTree extends JTree {
     }
 
     private void findNotPresentedTags(EDTGroup group, Queue<String> notPresented, DefaultMutableTreeNode rootNode) {
-        for (Map.Entry<String, Object> entry : group.getObjects().entrySet()){
+        for (Map.Entry<String, Object> entry : group.getObjects().entrySet()) {
             String tag = entry.getKey();
             boolean used = false;
             for (int i = 0; i < rootNode.getChildCount(); i++) {
@@ -269,8 +267,7 @@ public class EditorTree extends JTree {
                     String tag = notPresented.remove();
                     subUserData.setTag(tag);
                     subEDT = group.getObjects().get(tag);
-                }
-                else {
+                } else {
                     if (isPathSelected(new TreePath(subnode.getPath()))){
                         if (i > 0) {
                             setSelectionPath(
@@ -287,8 +284,7 @@ public class EditorTree extends JTree {
             }
             if (subEDT instanceof EDTItem) {
                 refresh(subnode, (EDTItem) subEDT);
-            }
-            else {
+            } else {
                 if (subnode.getChildCount() > 0) {
                     subnode.removeAllChildren();
                 }

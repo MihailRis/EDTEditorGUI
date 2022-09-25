@@ -1,7 +1,5 @@
 package mihailris.edteditorgui.utils;
 
-import mihailris.edteditorgui.components.TextEditor;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -12,7 +10,7 @@ public class ImageUtils {
     public static Image loadColored(String path, Color tint){
         BufferedImage image;
         try {
-            image = ImageIO.read(Objects.requireNonNull(TextEditor.class.getResource(path)));
+            image = ImageIO.read(Objects.requireNonNull(ImageUtils.class.getResource(path)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

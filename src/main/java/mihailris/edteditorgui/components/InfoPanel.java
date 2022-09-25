@@ -17,6 +17,7 @@ public class InfoPanel {
     private final JPanel infoPanel;
     private final JTextPane itemTitleLabel;
     private EDTNodeUserData userData;
+    private final Pattern pattern = Pattern.compile("\r\n|\r|\n");
 
     public InfoPanel(){
         infoPanel = new JPanel(new BorderLayout());
@@ -35,12 +36,13 @@ public class InfoPanel {
         return infoPanel;
     }
 
+
     public void update(){
         int lines = 0;
         int length = 0;
         if (userData != null && userData.getValue() instanceof String){
             String string = (String) userData.getValue();
-            Matcher matcher = Pattern.compile("\r\n|\r|\n").matcher(string);
+            Matcher matcher = pattern.matcher(string);
             while (matcher.find()){
                 lines++;
             }
