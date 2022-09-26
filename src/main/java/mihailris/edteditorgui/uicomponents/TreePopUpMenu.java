@@ -26,7 +26,7 @@ public class TreePopUpMenu extends JPopupMenu {
     public TreePopUpMenu(MainFrame frame, TreePath path){
         DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) path.getLastPathComponent();
         EDTNodeUserData userData = (EDTNodeUserData) treeNode.getUserObject();
-        //setFocusable(false);
+        setFocusable(false);
         Object value = userData.getValue();
         if (value instanceof EDTItem) {
             EDTItem edtItem = (EDTItem) value;
