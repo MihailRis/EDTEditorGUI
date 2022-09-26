@@ -191,7 +191,7 @@ public class MainFrame extends JFrame {
 
         JMenuItem m13 = new JMenuItem("Save");
         m13.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
-        m13.addActionListener(actionEvent -> saveEDTToFile(context.lastFile));
+        m13.addActionListener(actionEvent -> saveEDTToFile(context.getLastFile()));
         m1.add(m13);
 
         JMenuItem m14 = new JMenuItem("Save as");
@@ -388,11 +388,12 @@ public class MainFrame extends JFrame {
      */
     public void updateTitle() {
         String title = "";
-        if (context.lastFile == null) {
+        File lastFile = context.getLastFile();
+        if (lastFile == null) {
             title += "untitled";
         }
         else {
-            title += context.lastFile.getName();
+            title += lastFile;
         }
         if (!Actions.isAllSaved()){
             title += "*";

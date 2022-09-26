@@ -9,6 +9,7 @@ public class Actions {
     private static final List<EditorAction> history = new ArrayList<>();
     private static int pointer;
     private static EditorAction lastSaved;
+
     public static void act(EditorAction action, AppContext context) {
         while (pointer < history.size())
             history.remove(history.size()-1);

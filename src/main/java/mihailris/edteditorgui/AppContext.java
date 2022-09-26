@@ -13,10 +13,9 @@ public class AppContext {
     public EDTItem root;
 
     @Autowired
-    public
-    MainFrame mainFrame;
+    public MainFrame mainFrame;
 
-    File lastFile;
+    private File lastFile;
 
     AppContext(){
         root = EDTGroup.create("root");
