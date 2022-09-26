@@ -5,10 +5,13 @@ import java.util.Map;
 
 public class EditorSwingUtils {
     public static void configTheme(){
+        for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            System.out.println(info.getName()+" "+info.getClassName());
+        }
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("GTK+".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    setTheme(info.getClassName());
                     break;
                 }
             }
@@ -19,6 +22,7 @@ public class EditorSwingUtils {
 
     public static void setTheme(String className){
         try {
+            System.out.println("SET THEME "+className);
             javax.swing.UIManager.setLookAndFeel(className);
         } catch (Exception e) {
             e.printStackTrace();

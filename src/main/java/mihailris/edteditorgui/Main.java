@@ -1,29 +1,17 @@
 package mihailris.edteditorgui;
 
-import mihailris.edteditorgui.utils.EditorSwingUtils;
+import com.formdev.flatlaf.FlatDarkLaf;
 import mihailris.edtfile.EDT;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 
 public class Main {
-    private static void configureLookAndFeel(Preferences preferences) throws BackingStoreException {
-        if (preferences.get("look-and-feel", null) == null){
-            EditorSwingUtils.configTheme();
-            preferences.put("look-and-feel", javax.swing.UIManager.getLookAndFeel().getClass().getName());
-            preferences.flush();
-        }
-        EditorSwingUtils.setTheme(preferences.get("look-and-feel", null));
-    }
-
-    public static void main(String[] args) throws IOException, BackingStoreException {
-        Preferences preferences = Preferences.userRoot().node("edteditorgui");
-        configureLookAndFeel(preferences);
+    public static void main(String[] args) throws IOException {
+        FlatDarkLaf.setup();
 
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfig.class);
         MainFrame mainFrame = (MainFrame) context.getBean("mainFrame");

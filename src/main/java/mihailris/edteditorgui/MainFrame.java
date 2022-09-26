@@ -141,11 +141,13 @@ public class MainFrame extends JFrame {
      * The main start up method that launches the application
      */
     public void launch(){
+        buildUI(); // FUCK IT
         onRootChanged();
         updateTitle();
         setVisible(true);
         tree.grabFocus();
         tree.setSelectionPath(tree.getPathForRow(0));
+        revalidate();
     }
 
     /**
