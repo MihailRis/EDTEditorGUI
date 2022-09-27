@@ -1,6 +1,6 @@
 package mihailris.edteditorgui;
 
-import com.formdev.flatlaf.FlatDarkLaf;
+import mihailris.edteditorgui.utils.EditorSwingUtils;
 import mihailris.edtfile.EDT;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -11,8 +11,7 @@ import java.nio.file.Files;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        FlatDarkLaf.setup();
-
+        EditorSwingUtils.configLookAndFeel();
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfig.class);
         MainFrame mainFrame = (MainFrame) context.getBean("mainFrame");
         if (args.length > 0){

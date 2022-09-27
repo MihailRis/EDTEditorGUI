@@ -1,21 +1,28 @@
 package mihailris.edteditorgui.utils;
 
+import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class EditorSwingUtils {
-    public static void configTheme(){
-        for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-            System.out.println(info.getName()+" "+info.getClassName());
+    public static void configLookAndFeel(){
+        for (UIManager.LookAndFeelInfo lookAndFeel : UIManager.getInstalledLookAndFeels()) {
+            System.out.println(lookAndFeel.getName()+" "+lookAndFeel.getClassName());
         }
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("GTK+".equals(info.getName())) {
-                    setTheme(info.getClassName());
-                    break;
+            for (UIManager.LookAndFeelInfo lookAndFeel : UIManager.getInstalledLookAndFeels()) {
+                if (lookAndFeel.getName().equals("GTK+")) {
+                    setTheme(lookAndFeel.getClassName());
+                    return;
                 }
             }
-        } catch (Exception e) {
+            for (UIManager.LookAndFeelInfo lookAndFeel : UIManager.getInstalledLookAndFeels()) {
+                if (lookAndFeel.getName().equals("Nimbus")) {
+                    setTheme(lookAndFeel.getClassName());
+                    return;
+                }
+            }
+        } catch (Exception e){
             e.printStackTrace();
         }
     }

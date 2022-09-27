@@ -11,6 +11,7 @@ import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import sun.reflect.generics.tree.Tree;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
@@ -45,7 +46,11 @@ public class EditorTree extends JTree {
             @Override
             public boolean isCellEditable(EventObject eventObject) {
                 MouseEvent event = (MouseEvent) eventObject;
-                TreePath selPath = getPathForLocation(event.getX(), event.getY());
+                TreePath selPath;
+                if (event == null)
+                    selPath = mainFrame.renaming;
+                else
+                    selPath = getPathForLocation(event.getX(), event.getY());
                 if (selPath != null) {
                     EDTNodeUserData userData = MainFrame.getUserData(selPath);
                     Object value = userData.getValue();
