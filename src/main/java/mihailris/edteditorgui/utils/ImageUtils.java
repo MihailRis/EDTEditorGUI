@@ -18,8 +18,11 @@ public class ImageUtils {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 Color imageColor = new Color(image.getRGB(x, y), true);
+                int r = tint.getRed();
+                int g = tint.getGreen();
+                int b = tint.getBlue();
                 int a = imageColor.getAlpha();
-                graphics.setColor(new Color(tint.getRed(), tint.getGreen(), tint.getBlue(), a));
+                graphics.setColor(new Color(r, g, b, a));
                 graphics.fillRect(x, y, 1, 1);
             }
         }

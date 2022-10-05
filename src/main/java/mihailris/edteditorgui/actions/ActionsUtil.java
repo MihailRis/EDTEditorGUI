@@ -6,6 +6,9 @@ import mihailris.edtfile.EDTGroup;
 import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
 
+/**
+ * Utility class to create actions with a lot of parameters
+ */
 public class ActionsUtil {
     public static void actionSetValue(EDTNodeUserData userData, Object performed, AppContext context){
         EDTItem parent = userData.getParent();
