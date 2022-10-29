@@ -140,6 +140,14 @@ public class TreePopUpMenu extends JPopupMenu {
 
     private ActionListener createAddNodeActionListener(MainFrame frame, EDTType edtType, EDTItem value){
         return mouseEvent -> {
+            if (value instanceof EDTList) {
+                if (edtType != EDTType.GROUP && edtType != EDTType.LIST) {
+                    Object object = createDefaultObject(edtType, null);
+                    EDTList list = (EDTList) value;
+                    Actions.act(new ActionCreateRemoveList(list, list.size(), object, true), frame.context);
+                    return;
+                }
+            }
             NameInputDialog dialog = new NameInputDialog(frame);
             Point point = MouseInfo.getPointerInfo().getLocation();
             int x = point.x;

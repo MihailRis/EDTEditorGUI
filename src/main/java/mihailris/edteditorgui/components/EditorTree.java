@@ -11,7 +11,6 @@ import mihailris.edtfile.EDTItem;
 import mihailris.edtfile.EDTList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.tree.Tree;
 
 import javax.annotation.PostConstruct;
 import javax.swing.*;
@@ -54,12 +53,10 @@ public class EditorTree extends JTree {
                 if (selPath != null) {
                     EDTNodeUserData userData = MainFrame.getUserData(selPath);
                     Object value = userData.getValue();
-                    if (value instanceof EDTItem) {
+                    if (value instanceof EDTItem || value instanceof byte[]) {
                         return false;
                     } else if (value instanceof String) {
                         return ((String) value).length() < MAX_SHORT_EDITING;
-                    } else if (value instanceof byte[]) {
-                        return ((byte[]) value).length < MAX_SHORT_EDITING;
                     }
                 }
                 return super.isCellEditable(eventObject);
