@@ -6,6 +6,7 @@ import mihailris.edteditorgui.actions.ActionCreateRemoveGroup;
 import mihailris.edteditorgui.actions.ActionCreateRemoveList;
 import mihailris.edteditorgui.actions.Actions;
 import mihailris.edteditorgui.actions.ActionsUtil;
+import mihailris.edteditorgui.utils.DialogsUtil;
 import mihailris.edtfile.*;
 
 import javax.swing.*;
@@ -15,7 +16,10 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 public class TreePopUpMenu extends JPopupMenu {
     JMenu subnodeItem;
@@ -81,6 +85,21 @@ public class TreePopUpMenu extends JPopupMenu {
                 frame.onSelected(path);
             });
             add(convertItem);
+
+            JMenuItem loadFromFileItem = new JMenuItem("Load from File");
+            loadFromFileItem.addActionListener(actionEvent -> {
+                File file = DialogsUtil.chooseOpenFile(frame);
+                if (file == null)
+                    return;
+                try {
+                    byte[] data = Files.readAllBytes(file.toPath());
+                    ActionsUtil.actionSetValue(userData, data, frame.context);
+                    frame.onSelected(path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            add(loadFromFileItem);
         }
 
         if (value instanceof EDTItem && parent != null) {
