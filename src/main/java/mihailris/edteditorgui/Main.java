@@ -16,6 +16,7 @@ public class Main {
         MainFrame mainFrame = (MainFrame) context.getBean("mainFrame");
         if (args.length > 0){
             File file = new File(args[0]);
+            mainFrame.context.setLastFile(file);
             mainFrame.context.setRoot(EDT.read(Files.readAllBytes(file.toPath())));
         }
         mainFrame.launch();
